@@ -639,44 +639,6 @@ const AppState = {
   progress: {},
   config: { theme:'light', fontSize:'medium', compact:'false' }
 };
-
-const DEMO_DATA = {
-  pathogens: [
-    {
-      id:'demo-staph-aureus', name:'Staphylococcus aureus', type:'bacteria',
-      topic:'Infecciones cutáneas y sistémicas', subtopic:'Cocos Gram positivos',
-      keywords:'coagulasa, gram positivo, toxinas, aureus',
-      summary:'Coco Gram positivo en racimos, catalasa y coagulasa positivo. [DATO DE DEMOSTRACIÓN]',
-      sections:{
-        'Morfología':'Cocos Gram positivos agrupados en racimos irregulares.',
-        'Factores de virulencia':'Coagulasa, proteína A, toxina del shock tóxico (TSST-1), enterotoxinas.',
-        'Manifestaciones clínicas':'Infecciones de piel y tejidos blandos, bacteriemia, endocarditis, intoxicación alimentaria.'
-      }, isDemo:true
-    },
-    {
-      id:'demo-influenza-a', name:'Virus Influenza A', type:'virus',
-      topic:'Infecciones respiratorias', subtopic:'Virus ARN envueltos',
-      keywords:'ARN, hemaglutinina, neuraminidasa, gripe',
-      summary:'Virus ARN monocatenario segmentado causante de la gripe estacional. [DATO DE DEMOSTRACIÓN]',
-      sections:{
-        'Estructura':'Genoma de ARN monocatenario negativo segmentado (8 segmentos) con envoltura lipídica.',
-        'Patogenia':'Infecta el epitelio respiratorio vía hemaglutinina (HA) y se libera vía neuraminidasa (NA).'
-      }, isDemo:true
-    }
-  ],
-  topics:[
-    { id:'topic-Infecciones cutáneas y sistémicas', name:'Infecciones cutáneas y sistémicas', description:'Microorganismos que afectan la piel y causan cuadros sistémicos.' },
-    { id:'topic-Infecciones respiratorias', name:'Infecciones respiratorias', description:'Patógenos de vías respiratorias superiores e inferiores.' }
-  ],
-  concepts:[
-    { id:'demo-concept-coagulasa', name:'Coagulasa', topic:'Infecciones cutáneas y sistémicas',
-      content:'Enzima producida por S. aureus que convierte el fibrinógeno en fibrina, formando un coágulo protector. [DATO DE DEMOSTRACIÓN]',
-      keywords:'enzima, estafilococo, coágulo', isDemo:true }
-  ],
-  flashcards:[
-    { id:'demo-fc-1', question:'¿Qué prueba bioquímica clave diferencia a Staphylococcus aureus de otros estafilococos?',
-      answer:'La prueba de coagulasa (S. aureus es coagulasa positivo). [DATO DE DEMOSTRACIÓN]',
-      pathogenId:'demo-staph-aureus', topic:'Infecciones cutáneas y sistémicas', type:'bacteria', isDemo:true }
   ]
 };
 
