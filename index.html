@@ -1250,34 +1250,50 @@ let quizPool = [];
 let quizIndex = 0;
 let quizScore = { correct:0, wrong:0 };
 let quizAnswered = false;
+let quizCurrentOptions = []; // opciones de la pregunta actual, para no serializar texto largo en el DOM
 
 function renderQuizGroupSelect(){
   const sel = document.getElementById('quizGroupSelect');
   const current = sel.value;
   sel.innerHTML = `<option value="all">Todos los bloques</option>` +
-    state.groups.filter(g=>state.pathogens.some(p=>p.groupId===g.id)).map(g=>`<option value="${g.id}">${g.title}</option>`).join('');
+    state.groups.filter(g=>state.flashcards.some(f=>f.groupId===g.id)).map(g=>`<option value="${g.id}">${g.title}</option>`).join('');
   if([...sel.options].some(o=>o.value===current)) sel.value = current;
 }
 
-function buildQuizQuestion(pathogen, scopePool){
-  // Alterna entre preguntar el tipo de microorganismo y el bloque temático, según los datos disponibles
-  const askType = Math.random() < 0.5;
-  if(askType){
-    const correct = badgeLabel(pathogen.type);
-    const otherLabels = [...new Set(scopePool.map(p=>badgeLabel(p.type)).filter(l=>l!==correct))];
-    const options = shuffleArr([correct, ...shuffleArr(otherLabels).slice(0,3)]);
-    return { prompt: `¿Qué tipo de microorganismo es <em>${pathogen.name}</em>?`, options, correct };
-  } else {
-    const correct = groupTitle(pathogen.groupId);
-    const otherTitles = [...new Set(scopePool.map(p=>groupTitle(p.groupId)).filter(t=>t!==correct))];
-    const options = shuffleArr([correct, ...shuffleArr(otherTitles).slice(0,3)]);
-    return { prompt: `¿A qué bloque temático pertenece <em>${pathogen.name}</em>?`, options, correct };
-  }
+// Arma distractores a partir de otras respuestas: primero del mismo tema (más específico
+// y por lo tanto más difícil/útil), y si no alcanzan, del mismo bloque o de todo el pool.
+function buildQuizQuestion(card, scopePool){
+  const sameTopic = scopePool.filter(f=>f.id!==card.id && f.topic===card.topic && f.answer!==card.answer);
+  const sameGroup = scopePool.filter(f=>f.id!==card.id && f.groupId===card.groupId && f.answer!==card.answer);
+  const anyOther  = scopePool.filter(f=>f.id!==card.id && f.answer!==card.answer);
+
+  const pickUnique = (arr, n, exclude) => {
+    const seen = new Set(exclude);
+    const out = [];
+    for(const f of shuffleArr(arr.slice())){
+      if(out.length>=n) break;
+      if(seen.has(f.answer)) continue;
+      seen.add(f.answer); out.push(f.answer);
+    }
+    return out;
+  };
+
+  let distractors = pickUnique(sameTopic, 3, [card.answer]);
+  if(distractors.length < 3) distractors = distractors.concat(pickUnique(sameGroup, 3-distractors.length, [card.answer, ...distractors]));
+  if(distractors.length < 3) distractors = distractors.concat(pickUnique(anyOther, 3-distractors.length, [card.answer, ...distractors]));
+
+  const options = shuffleArr([card.answer, ...distractors]);
+  return { prompt: card.question, options, correct: card.answer };
 }
 
 function startQuiz(){
   const scope = document.getElementById('quizGroupSelect').value;
-  quizPool = scope==='all' ? state.pathogens.slice() : state.pathogens.filter(p=>p.groupId===scope);
+  quizPool = scope==='all' ? state.flashcards.slice() : state.flashcards.filter(f=>f.groupId===scope);
+  // Solo entran preguntas para las que se puede armar al menos 1 distractor real
+  quizPool = quizPool.filter(card=>{
+    const q = buildQuizQuestion(card, scope==='all' ? state.flashcards : quizPool);
+    return q.options.length >= 2;
+  });
   shuffleArr(quizPool);
   quizIndex = 0;
   quizScore = { correct:0, wrong:0 };
@@ -1289,7 +1305,7 @@ function renderQuiz(){
   const prog = document.getElementById('quizProgress');
   const scores = document.getElementById('quizScores');
   if(!quizPool.length){
-    cont.innerHTML = '<div class="fc-empty">No hay patógenos suficientes en este bloque para armar un quiz.</div>';
+    cont.innerHTML = '<div class="fc-empty">No hay suficientes flashcards en este bloque para armar un quiz (hacen falta al menos 2 con temas relacionados).</div>';
     prog.textContent=''; scores.innerHTML=''; return;
   }
   if(quizIndex >= quizPool.length){
@@ -1299,24 +1315,26 @@ function renderQuiz(){
     return;
   }
   quizAnswered = false;
-  const pathogen = quizPool[quizIndex];
-  const q = buildQuizQuestion(pathogen, quizPool.length >= 4 ? quizPool : state.pathogens);
-  prog.textContent = `Pregunta ${quizIndex+1} / ${quizPool.length}`;
+  const card = quizPool[quizIndex];
+  const scopeForDistractors = document.getElementById('quizGroupSelect').value==='all' ? state.flashcards : quizPool;
+  const q = buildQuizQuestion(card, scopeForDistractors);
+  quizCurrentOptions = q.options;
+  prog.textContent = `Pregunta ${quizIndex+1} / ${quizPool.length} · ${card.topic||''}`;
   cont.innerHTML = `
     <div class="flashcard">
       <div class="fc-topic">Opción múltiple</div>
       <div class="fc-question">${q.prompt}</div>
       <div class="difficulty-btns" style="flex-direction:column; align-items:stretch;">
-        ${q.options.map(opt=>`<button class="btn" data-quiz-opt="${encodeURIComponent(opt)}" style="text-align:left;">${opt}</button>`).join('')}
+        ${q.options.map((opt,i)=>`<button class="btn" data-quiz-idx="${i}" style="text-align:left;">${opt}</button>`).join('')}
       </div>
       <div class="fc-hint" id="quizFeedback"></div>
     </div>
   `;
-  cont.querySelectorAll('[data-quiz-opt]').forEach(b=>{
+  cont.querySelectorAll('[data-quiz-idx]').forEach(b=>{
     b.addEventListener('click', ()=>{
       if(quizAnswered) return;
       quizAnswered = true;
-      const chosen = decodeURIComponent(b.dataset.quizOpt);
+      const chosen = quizCurrentOptions[Number(b.dataset.quizIdx)];
       const feedback = document.getElementById('quizFeedback');
       if(chosen === q.correct){
         quizScore.correct++;
@@ -1325,17 +1343,18 @@ function renderQuiz(){
       } else {
         quizScore.wrong++;
         b.classList.add('btn-hard');
-        feedback.textContent = `❌ Incorrecto. La respuesta correcta era: ${q.correct}`;
-        cont.querySelectorAll('[data-quiz-opt]').forEach(ob=>{ if(decodeURIComponent(ob.dataset.quizOpt)===q.correct) ob.classList.add('btn-easy'); });
+        feedback.textContent = '❌ Incorrecto.';
+        cont.querySelectorAll('[data-quiz-idx]').forEach(ob=>{
+          if(quizCurrentOptions[Number(ob.dataset.quizIdx)]===q.correct) ob.classList.add('btn-easy');
+        });
       }
       scores.innerHTML = `<span>✅ <b>${quizScore.correct}</b></span><span>❌ <b>${quizScore.wrong}</b></span>`;
-      setTimeout(()=>{ quizIndex++; renderQuiz(); }, 1100);
+      setTimeout(()=>{ quizIndex++; renderQuiz(); }, 1400);
     });
   });
   scores.innerHTML = `<span>✅ <b>${quizScore.correct}</b></span><span>❌ <b>${quizScore.wrong}</b></span>`;
 }
 document.getElementById('quizStartBtn').addEventListener('click', startQuiz);
-
 /* ================= BUSCAR ================= */
 function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function highlightText(text, q){
