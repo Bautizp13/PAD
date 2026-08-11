@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light" data-font-size="medium" data-compact="false">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microbiología IA - Plataforma de Estudio</title>
+  <style>
+    /* ==========================================================================
+       1. VARIABLES Y TEMA CSS (ACCESIBILIDAD, MODO OSCURO, ALTO CONTRASTE)
+       ========================================================================== */
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-sidebar: #0f172a;
+      --text-sidebar: #f1f5f9;
+      --text-sidebar-muted: #94a3b8;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #cbd5e1;
+      
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-light: #eff6ff;
+      
+      --type-bacteria-bg: #dbeafe;
+      --type-bacteria-txt: #1e40af;
+      --type-bacteria-border: #3b82f6;
+
+      --type-virus-bg: #fef3c7;
+      --type-virus-txt: #92400e;
+      --type-virus-border: #f59e0b;
+
+      --type-fungus-bg: #dcfce7;
+      --type-fungus-txt: #166534;
+      --type-fungus-border: #22c55e;
+
+      --type-parasite-bg: #f3e8ff;
+      --type-parasite-txt: #6b21a8;
+      --type-parasite-border: #a855f7;
+
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-size-base: 16px;
+      
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --radius-lg: 0.5rem;
+      --radius-xl: 0.75rem;
+      --spacing-card: 1.25rem;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-sidebar: #020617;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+      --accent-light: #1e3a8a;
+
+      --type-bacteria-bg: #1e3a8a;
+      --type-bacteria-txt: #93c5fd;
+
+      --type-virus-bg: #78350f;
+      --type-virus-txt: #fde68a;
+
+      --type-fungus-bg: #14532d;
+      --type-fungus-txt: #86efac;
+
+      --type-parasite-bg: #581c87;
+      --type-parasite-txt: #e9d5ff;
+    }
+
+    [data-theme="high-contrast"] {
+      --bg-primary: #000000;
+      --bg-secondary: #000000;
+      --bg-sidebar: #000000;
+      --text-sidebar: #ffffff;
+      --text-primary: #ffff00;
+      --text-secondary: #ffffff;
+      --border-color: #ffffff;
+      --accent-color: #ffff00;
+      --accent-hover: #00ffff;
+      --accent-light: #333300;
+
+      --type-bacteria-bg: #000000;
+      --type-bacteria-txt: #ffff00;
+      --type-bacteria-border: #ffffff;
+
+      --type-virus-bg: #000000;
+      --type-virus-txt: #ffff00;
+      --type-virus-border: #ffffff;
+
+      --type-fungus-bg: #000000;
+      --type-fungus-txt: #ffff00;
+      --type-fungus-border: #ffffff;
+
+      --type-parasite-bg: #000000;
+      --type-parasite-txt: #ffff00;
+      --type-parasite-border: #ffffff;
+    }
+
+    [data-font-size="small"] { --font-size-base: 14px; }
+    [data-font-size="medium"] { --font-size-base: 16px; }
+    [data-font-size="large"] { --font-size-base: 18px; }
+    [data-font-size="xlarge"] { --font-size-base: 20px; }
+
+    [data-compact="true"] {
+      --spacing-card: 0.75rem;
+      --radius-xl: 0.35rem;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-main);
+      font-size: var(--font-size-base);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       2. ESTRUCTURA Y NAVEGACIÓN SPA
+       ========================================================================== */
+    #sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      color: var(--text-sidebar);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      transition: transform 0.3s ease, width 0.3s ease;
+    }
+
+    #sidebar.collapsed {
+      width: 80px;
+    }
+
+    #sidebar.collapsed .nav-text, 
+    #sidebar.collapsed .brand-title,
+    #sidebar.collapsed .nav-section-label {
+      display: none;
+    }
+
+    .sidebar-header {
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      color: #38bdf8;
+    }
+
+    .toggle-sidebar-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sidebar);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0;
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-sidebar-muted);
+      padding: 0.75rem 1.25rem 0.25rem;
+      font-weight: 700;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      color: var(--text-sidebar-muted);
+      text-decoration: none;
+      cursor: pointer;
+      gap: 0.75rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .nav-item.active {
+      border-left: 4px solid var(--accent-color);
+    }
+
+    .nav-icon {
+      font-size: 1.2rem;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    #main-wrapper {
+      flex: 1;
+      margin-left: 260px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      transition: margin-left 0.3s ease;
+    }
+
+    #sidebar.collapsed + #main-wrapper {
+      margin-left: 80px;
+    }
+
+    .top-header {
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .global-search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+    }
+
+    .global-search-input {
+      width: 100%;
+      padding: 0.6rem 1rem 0.6rem 2.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 2rem;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .global-search-input:focus {
+      outline: 2px solid var(--accent-color);
+    }
+
+    .search-icon-inside {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+
+    .content-container {
+      padding: 2rem;
+      flex: 1;
+    }
+
+    .section-view {
+      display: none;
+    }
+
+    .section-view.active {
+      display: block;
+    }
+
+    /* ==========================================================================
+       3. COMPONENTES Y TARJETAS UI
+       ========================================================================== */
+    h1, h2, h3, h4 {
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-card);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg-primary);
+      flex-shrink: 0;
+    }
+
+    .stat-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-lbl {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .quick-btn {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .quick-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-color);
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+      background-color: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-color);
+    }
+
+    .filter-btn-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .btn:hover {
+      background-color: var(--border-color);
+    }
+
+    .btn.active {
+      background-color: var(--accent-color);
+      color: #ffffff;
+      border-color: var(--accent-color);
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card-item {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+
+    .badge-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      margin-bottom: 0.75rem;
+      width: fit-content;
+    }
+
+    .type-bacteria { background-color: var(--type-bacteria-bg); color: var(--type-bacteria-txt); border-color: var(--type-bacteria-border); }
+    .type-virus { background-color: var(--type-virus-bg); color: var(--type-virus-txt); border-color: var(--type-virus-border); }
+    .type-fungus { background-color: var(--type-fungus-bg); color: var(--type-fungus-txt); border-color: var(--type-fungus-border); }
+    .type-parasite { background-color: var(--type-parasite-bg); color: var(--type-parasite-txt); border-color: var(--type-parasite-border); }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .card-body {
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      flex: 1;
+      color: var(--text-primary);
+    }
+
+    /* ==========================================================================
+       4. FICHA DE PATÓGENOS Y SECCIONES DINÁMICAS
+       ========================================================================== */
+    .sheet-view {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .sheet-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sheet-sections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .sheet-section-box {
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+    }
+
+    .sheet-section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent-color);
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.25rem;
+    }
+
+    .absent-info {
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 0.85rem;
+    }
+
+    /* ==========================================================================
+       5. FLASHCARDS Y REPASO
+       ========================================================================== */
+    .flashcard-container {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .flashcard {
+      background-color: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      min-height: 250px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .flashcard-answer {
+      display: none;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px dashed var(--border-color);
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .flashcard-answer.visible {
+      display: block;
+    }
+
+    .difficulty-btns {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .btn-easy { background-color: #dcfce7; color: #15803d; border-color: #86efac; }
+    .btn-medium { background-color: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .btn-hard { background-color: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+    /* ==========================================================================
+       6. RESPONSIVE & UTILITIES
+       ========================================================================== */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+      #sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      #main-wrapper {
+        margin-left: 0 !important;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+      .content-container {
+        padding: 1rem;
+      }
+    }
+
+    .demo-tag {
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #f59e0b;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.25rem;
+      margin-left: 0.5rem;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA LATERAL -->
+  <aside id="sidebar" aria-label="Navegación principal">
+    <div class="sidebar-header">
+      <span class="brand-title">MICROBIOLOGÍA IA</span>
+      <button class="toggle-sidebar-btn" id="toggleSidebar" aria-label="Contraer o expandir barra lateral">📑</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Biblioteca</div>
+      <div class="nav-item active" data-target="sec-inicio">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Inicio</span>
+      </div>
+      <div class="nav-item" data-target="sec-temas">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Temas</span>
+      </div>
+      <div class="nav-item" data-target="sec-patogenos">
+        <span class="nav-icon">🔬</span>
+        <span class="nav-text">Patógenos</span>
+      </div>
+      <div class="nav-item" data-target="sec-teoria">
+        <span class="nav-icon">📖</span>
+        <span class="nav-text">Teoría</span>
+      </div>
+
+      <div class="nav-section-label">Estudio</div>
+      <div class="nav-item" data-target="sec-flashcards">
+        <span class="nav-icon">🎴</span>
+        <span class="nav-text">Flashcards</span>
+      </div>
+      <div class="nav-item" data-target="sec-repaso">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Repaso</span>
+      </div>
+
+      <div class="nav-section-label">Herramientas</div>
+      <div class="nav-item" data-target="sec-materiales">
+        <span class="nav-icon">📥</span>
+        <span class="nav-text">Agregar contenido</span>
+      </div>
+      <div class="nav-item" data-target="sec-configuracion">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div id="main-wrapper">
+    <!-- Header Superior con Buscador Global -->
+    <header class="top-header">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menú móvil">☰</button>
+      <div class="global-search-container">
+        <span class="search-icon-inside" aria-hidden="true">🔍</span>
+        <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Buscador global (patógenos, temas, teoría, flashcards)..." aria-label="Buscador global">
+      </div>
+    </header>
+
+    <!-- Área de Contenido SPA -->
+    <main class="content-container">
+
+      <!-- VISTA: BUSCADOR GLOBAL (RESULTADOS) -->
+      <section id="sec-search-results" class="section-view">
+        <h1 class="page-title">Resultados de Búsqueda Global</h1>
+        <div id="searchResultsContainer"></div>
+      </section>
+
+      <!-- VISTA: INICIO -->
+      <section id="sec-inicio" class="section-view active">
+        <h1 class="page-title">Visión General de la Biblioteca</h1>
+        <p style="margin-bottom:1.5rem; color:var(--text-secondary);">Plataforma personal de estudio y biblioteca interactiva de Microbiología.</p>
+        
+        <div class="grid-stats">
+          <div class="stat-card">
+            <div class="stat-icon">🧬</div>
+            <div>
+              <div class="stat-val" id="st-total">0</div>
+              <div class="stat-lbl">Patógenos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🧫</div>
+            <div>
+              <div class="stat-val" id="st-bacterias">0</div>
+              <div class="stat-lbl">Bacterias</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🦠</div>
+            <div>
+              <div class="stat-val" id="st-virus">0</div>
+              <div class="stat-lbl">Virus</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🍄</div>
+            <div>
+              <div class="stat-val" id="st-hongos">0</div>
+              <div class="stat-lbl">Hongos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🪱</div>
+            <div>
+              <div class="stat-val" id="st-parasitos">0</div>
+              <div class="stat-lbl">Parásitos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div>
+              <div class="stat-val" id="st-temas">0</div>
+              <div class="stat-lbl">Temas</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📖</div>
+            <div>
+              <div class="stat-val" id="st-conceptos">0</div>
+              <div class="stat-lbl">Conceptos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎴</div>
+            <div>
+              <div class="stat-val" id="st-flashcards">0</div>
+              <div class="stat-lbl">Flashcards</div>
+            </div>
+          </div>
+        </div>
+
+        <h2>Accesos Rápidos</h2>
+        <div class="quick-actions">
+          <div class="quick-btn" onclick="navigateTo('sec-patogenos')">
+            <span style="font-size:1.5rem;">🔬</span> Buscar Patógenos
+          </div>
+          <div class="quick-btn" onclick="navigateTo('sec-flashcards')">
+            <span style="font-size:1.5rem;">🎴</span> Estudiar Flashcards
+          </div>
+          <div class="quick-btn" onclick="navigateTo('sec-teoria')">
+            <span style="font-size:1.5rem;">📖</span> Ver Teoría
+          </div>
+          <div class="quick-btn" onclick="navigateTo('sec-materiales')">
+            <span style="font-size:1.5rem;">📥</span> Agregar Material
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA: TEMAS -->
+      <section id="sec-temas" class="section-view">
+        <h1 class="page-title">Biblioteca de Temas</h1>
+        <div id="temasContainer" class="grid-cards"></div>
+      </section>
+
+      <!-- VISTA: PATÓGENOS -->
+      <section id="sec-patogenos" class="section-view">
+        <h1 class="page-title">Base de Datos de Microorganismos</h1>
+        
+        <div class="controls-bar">
+          <input type="text" id="pathogenSearchInput" class="btn" style="flex:1; min-width:220px;" placeholder="Buscar por nombre, género, palabra clave, contenido...">
+          
+          <select id="pathogenTopicFilter" class="btn">
+            <option value="ALL">Todos los Temas</option>
+          </select>
+
+          <div class="filter-btn-group" id="pathogenFilterGroup">
+            <button class="btn active" data-filter="ALL">Todos</button>
+            <button class="btn" data-filter="bacteria">🧫 Bacterias</button>
+            <button class="btn" data-filter="virus">🦠 Virus</button>
+            <button class="btn" data-filter="fungus">🍄 Hongos</button>
+            <button class="btn" data-filter="parasite">🪱 Parásitos</button>
+          </div>
+        </div>
+
+        <div class="grid-cards" id="pathogensGrid"></div>
+      </section>
+
+      <!-- VISTA: FICHA INDIVIDUAL DE PATÓGENO -->
+      <section id="sec-ficha" class="section-view">
+        <button class="btn" onclick="navigateTo('sec-patogenos')" style="margin-bottom: 1rem;">← Volver a Patógenos</button>
+        <div class="sheet-view">
+          <div class="sheet-header">
+            <span id="sheetBadge" class="badge-type"></span>
+            <h1 id="sheetTitle" style="margin-bottom:0.25rem;"></h1>
+            <div id="sheetSubtitles" style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:0.75rem;"></div>
+            <p id="sheetSummary" style="font-weight:500;"></p>
+          </div>
+          <div class="sheet-sections-grid" id="sheetSectionsGrid"></div>
+        </div>
+      </section>
+
+      <!-- VISTA: TEORÍA -->
+      <section id="sec-teoria" class="section-view">
+        <h1 class="page-title">Teoría y Conceptos Generales</h1>
+        <div class="controls-bar">
+          <input type="text" id="conceptSearchInput" class="btn" style="flex:1;" placeholder="Buscar en conceptos teóricos...">
+        </div>
+        <div id="teoriaGrid" class="grid-cards"></div>
+      </section>
+
+      <!-- VISTA: FLASHCARDS -->
+      <section id="sec-flashcards" class="section-view">
+        <h1 class="page-title">Estudio por Flashcards</h1>
+        
+        <div class="controls-bar">
+          <select id="fcFilterTopic" class="btn"><option value="ALL">Todos los Temas</option></select>
+          <select id="fcFilterType" class="btn">
+            <option value="ALL">Todos los Tipos</option>
+            <option value="bacteria">Bacterias</option>
+            <option value="virus">Virus</option>
+            <option value="fungus">Hongos</option>
+            <option value="parasite">Parásitos</option>
+          </select>
+          <select id="fcFilterDiff" class="btn">
+            <option value="ALL">Todas las Dificultades</option>
+            <option value="easy">Fácil</option>
+            <option value="medium">Media</option>
+            <option value="hard">Difícil</option>
+            <option value="new">Nuevas</option>
+          </select>
+          <button class="btn active" id="btnStartFlashcards">Iniciar Flashcards</button>
+        </div>
+
+        <div class="flashcard-container" id="fcStudyArea" style="display:none;">
+          <div class="flashcard" id="currentFlashcard">
+            <div id="fcQuestion" style="font-size:1.2rem; font-weight:600;"></div>
+            <div id="fcAnswer" class="flashcard-answer"></div>
+          </div>
+          
+          <div style="text-align:center;" id="fcActionArea">
+            <button class="btn active" id="btnShowAnswer">Mostrar Respuesta</button>
+          </div>
+
+          <div class="difficulty-btns" id="fcDifficultyArea" style="display:none;">
+            <button class="btn btn-easy" data-diff="easy">Fácil</button>
+            <button class="btn btn-medium" data-diff="medium">Media</button>
+            <button class="btn btn-hard" data-diff="hard">Difícil</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA: REPASO -->
+      <section id="sec-repaso" class="section-view">
+        <h1 class="page-title">Estadísticas de Repaso y Progreso</h1>
+        <div class="grid-stats">
+          <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div>
+              <div class="stat-val" id="st-fc-easy">0</div>
+              <div class="stat-lbl">Dominadas (Fácil)</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🟡</div>
+            <div>
+              <div class="stat-val" id="st-fc-medium">0</div>
+              <div class="stat-lbl">En Repaso (Media)</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔴</div>
+            <div>
+              <div class="stat-val" id="st-fc-hard">0</div>
+              <div class="stat-lbl">Difíciles</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚪</div>
+            <div>
+              <div class="stat-val" id="st-fc-new">0</div>
+              <div class="stat-lbl">Sin Estudiar</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA: AGREGAR CONTENIDO (IMPORTACIÓN MANUAL) -->
+      <section id="sec-materiales" class="section-view">
+        <h1 class="page-title">Agregar Contenido a la Biblioteca</h1>
+        <div class="sheet-view">
+          <p style="margin-bottom:1rem;">Pega el módulo HTML generado por la IA en el siguiente recuadro. El sistema procesará el contenido e incorporará patógenos, temas, conceptos o flashcards sin duplicar información existente.</p>
+          
+          <textarea id="importCodeInput" rows="10" style="width:100%; border-radius:var(--radius-lg); border:1px solid var(--border-color); padding:1rem; font-family:monospace; background:var(--bg-primary); color:var(--text-primary);" placeholder="<article data-module-type=&quot;pathogen&quot; data-id=&quot;...&quot;> ... </article>"></textarea>
+          
+          <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap;">
+            <button class="btn active" id="btnImportModule">Importar Módulo HTML</button>
+            <button class="btn" id="btnClearLibrary" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;">Restablecer Biblioteca Completa</button>
+          </div>
+          <div id="importFeedback" style="margin-top:1rem; font-weight:600;"></div>
+        </div>
+      </section>
+
+      <!-- VISTA: CONFIGURACIÓN -->
+      <section id="sec-configuracion" class="section-view">
+        <h1 class="page-title">Configuración de la Plataforma</h1>
+        <div class="sheet-view" style="max-width:500px;">
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <label><strong>Tamaño del Texto:</strong>
+              <select id="cfgFontSize" class="btn" style="width:100%; margin-top:0.4rem;">
+                <option value="small">Pequeño</option>
+                <option value="medium">Mediano</option>
+                <option value="large">Grande</option>
+                <option value="xlarge">Extra Grande</option>
+              </select>
+            </label>
+
+            <label><strong>Tema Visual:</strong>
+              <select id="cfgTheme" class="btn" style="width:100%; margin-top:0.4rem;">
+                <option value="light">Modo Claro</option>
+                <option value="dark">Modo Oscuro</option>
+                <option value="high-contrast">Alto Contraste</option>
+              </select>
+            </label>
+
+            <label><strong>Densidad Visual:</strong>
+              <select id="cfgCompact" class="btn" style="width:100%; margin-top:0.4rem;">
+                <option value="false">Vista Cómoda</option>
+                <option value="true">Vista Compacta</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       ARQUITECTURA JAVASCRIPT (VANILLA JS, SPA, STORAGE Y ENGINE)
+       ========================================================================== -->
+  <script>
+    /* --------------------------------------------------------------------------
+       1. ESTADO GLOBAL DE LA APLICACIÓN
+       -------------------------------------------------------------------------- */
+    const AppState = {
+      pathogens: [],
+      topics: [],
+      concepts: [],
+      flashcards: [],
+      progress: {}, // { [fcId]: 'easy' | 'medium' | 'hard' }
+      config: {
+        theme: 'light',
+        fontSize: 'medium',
+        compact: 'false'
+      }
+    };
+
+    /* --------------------------------------------------------------------------
+       2. DATOS MÍNIMOS DE DEMOSTRACIÓN (MARCADOS DE MODO TRANSPARENTE)
+       -------------------------------------------------------------------------- */
+    const DEMO_DATA = {
+      pathogens: [
+        {
+          id: 'demo-staph-aureus',
+          name: 'Staphylococcus aureus',
+          type: 'bacteria',
+          topic: 'Infecciones Cutáneas y Sistémicas',
+          subtopic: 'Cocos Gram Positivos',
+          keywords: 'coagulasa, gram positivo, toxinas, aureus',
+          summary: 'Coco Gram positivo en racimos, catalasa y coagulasa positivo. [DATO DEMOSTRACIÓN]',
+          sections: {
+            'Morfología': 'Cocos Gram positivos agrupados en racimos irregulares.',
+            'Factores de virulencia': 'Coagulasa, Proteína A, Toxina del shock tóxico (TSST-1), Enterotoxinas.',
+            'Manifestaciones clínicas': 'Infecciones de piel y tejidos blandos, bacteriemia, endocarditis, intoxicación alimentaria.'
+          },
+          isDemo: true
+        },
+        {
+          id: 'demo-influenza-a',
+          name: 'Virus Influenza A',
+          type: 'virus',
+          topic: 'Infecciones Respiratorias',
+          subtopic: 'Virus ARN Enueltos',
+          keywords: 'ARN, hemaglutinina, neuraminidasa, gripe',
+          summary: 'Virus ARN monocatenario segmentado causante de la gripe estacional. [DATO DEMOSTRACIÓN]',
+          sections: {
+            'Estructura': 'Genoma de ARN monocatenario negativo segmentado (8 segmentos) con envoltura lipídica.',
+            'Patogenia': 'Infección del epitelio respiratorio vía hemaglutinina (HA) y liberación vía neuraminidasa (NA).'
+          },
+          isDemo: true
+        }
+      ],
+      topics: [
+        { id: 'topic-Infecciones Cutáneas y Sistémicas', name: 'Infecciones Cutáneas y Sistémicas', description: 'Microorganismos que afectan la piel y causan cuadros sistémicos.' },
+        { id: 'topic-Infecciones Respiratorias', name: 'Infecciones Respiratorias', description: 'Patógenos de vías respiratorias superiores e inferiores.' }
+      ],
+      concepts: [
+        {
+          id: 'demo-concept-coagulasa',
+          name: 'Coagulasa',
+          topic: 'Infecciones Cutáneas y Sistémicas',
+          content: 'Enzima producida por S. aureus que convierte el fibrinógeno en fibrina, formando un coágulo protector. [DATO DEMOSTRACIÓN]',
+          keywords: 'enzima, estafilococo, coágulo',
+          isDemo: true
+        }
+      ],
+      flashcards: [
+        {
+          id: 'demo-fc-1',
+          question: '¿Qué prueba bioquímica clave diferencia a Staphylococcus aureus de otros estafilococos?',
+          answer: 'La prueba de Coagulasa (S. aureus es Coagulasa positivo). [DATO DEMOSTRACIÓN]',
+          pathogenId: 'demo-staph-aureus',
+          topic: 'Infecciones Cutáneas y Sistémicas',
+          type: 'bacteria',
+          isDemo: true
+        }
+      ]
+    };
+
+    /* --------------------------------------------------------------------------
+       3. PERSISTENCIA (LOCALSTORAGE)
+       -------------------------------------------------------------------------- */
+    function loadFromStorage() {
+      try {
+        const storedPathogens = localStorage.getItem('micro_pathogens');
+        const storedTopics = localStorage.getItem('micro_topics');
+        const storedConcepts = localStorage.getItem('micro_concepts');
+        const storedFlashcards = localStorage.getItem('micro_flashcards');
+        const storedProgress = localStorage.getItem('micro_progress');
+        const storedConfig = localStorage.getItem('micro_config');
+
+        AppState.pathogens = storedPathogens ? JSON.parse(storedPathogens) : [...DEMO_DATA.pathogens];
+        AppState.topics = storedTopics ? JSON.parse(storedTopics) : [...DEMO_DATA.topics];
+        AppState.concepts = storedConcepts ? JSON.parse(storedConcepts) : [...DEMO_DATA.concepts];
+        AppState.flashcards = storedFlashcards ? JSON.parse(storedFlashcards) : [...DEMO_DATA.flashcards];
+        AppState.progress = storedProgress ? JSON.parse(storedProgress) : {};
+        
+        if (storedConfig) {
+          AppState.config = JSON.parse(storedConfig);
+        }
+      } catch (e) {
+        console.error('Error cargando localStorage, restableciendo estado:', e);
+      }
+    }
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem('micro_pathogens', JSON.stringify(AppState.pathogens));
+        localStorage.setItem('micro_topics', JSON.stringify(AppState.topics));
+        localStorage.setItem('micro_concepts', JSON.stringify(AppState.concepts));
+        localStorage.setItem('micro_flashcards', JSON.stringify(AppState.flashcards));
+        localStorage.setItem('micro_progress', JSON.stringify(AppState.progress));
+        localStorage.setItem('micro_config', JSON.stringify(AppState.config));
+      } catch (e) {
+        console.error('Error guardando en localStorage:', e);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       4. CONFIGURACIÓN Y ACCESIBILIDAD
+       -------------------------------------------------------------------------- */
+    function applyConfig() {
+      document.documentElement.setAttribute('data-theme', AppState.config.theme);
+      document.documentElement.setAttribute('data-font-size', AppState.config.fontSize);
+      document.documentElement.setAttribute('data-compact', AppState.config.compact);
+
+      document.getElementById('cfgTheme').value = AppState.config.theme;
+      document.getElementById('cfgFontSize').value = AppState.config.fontSize;
+      document.getElementById('cfgCompact').value = AppState.config.compact;
+    }
+
+    document.getElementById('cfgTheme').addEventListener('change', (e) => {
+      AppState.config.theme = e.target.value;
+      applyConfig();
+      saveToStorage();
+    });
+
+    document.getElementById('cfgFontSize').addEventListener('change', (e) => {
+      AppState.config.fontSize = e.target.value;
+      applyConfig();
+      saveToStorage();
+    });
+
+    document.getElementById('cfgCompact').addEventListener('change', (e) => {
+      AppState.config.compact = e.target.value;
+      applyConfig();
+      saveToStorage();
+    });
+
+    /* --------------------------------------------------------------------------
+       5. NAVEGACIÓN Y RUTEO INTERNO (SPA)
+       -------------------------------------------------------------------------- */
+    function navigateTo(targetId) {
+      const sections = document.querySelectorAll('.section-view');
+      const navItems = document.querySelectorAll('.nav-item');
+
+      sections.forEach(s => s.classList.remove('active'));
+      navItems.forEach(n => n.classList.remove('active'));
+
+      const targetSec = document.getElementById(targetId);
+      if (targetSec) {
+        targetSec.classList.add('active');
+      }
+
+      const activeNav = document.querySelector(`.nav-item[data-target="${targetId}"]`);
+      if (activeNav) {
+        activeNav.classList.add('active');
+      }
+
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      window.scrollTo(0, 0);
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        navigateTo(item.getAttribute('data-target'));
+      });
+    });
+
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    });
+
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('mobile-open');
+    });
+
+    /* --------------------------------------------------------------------------
+       6. RENDERIZADO GENERAL Y ESTADÍSTICAS
+       -------------------------------------------------------------------------- */
+    function renderStats() {
+      let bac = 0, vir = 0, fun = 0, par = 0;
+      AppState.pathogens.forEach(p => {
+        if (p.type === 'bacteria') bac++;
+        else if (p.type === 'virus') vir++;
+        else if (p.type === 'fungus') fun++;
+        else if (p.type === 'parasite') par++;
+      });
+
+      document.getElementById('st-total').textContent = AppState.pathogens.length;
+      document.getElementById('st-bacterias').textContent = bac;
+      document.getElementById('st-virus').textContent = vir;
+      document.getElementById('st-hongos').textContent = fun;
+      document.getElementById('st-parasitos').textContent = par;
+      document.getElementById('st-temas').textContent = AppState.topics.length;
+      document.getElementById('st-conceptos').textContent = AppState.concepts.length;
+      document.getElementById('st-flashcards').textContent = AppState.flashcards.length;
+
+      // Estadísticas de Repaso
+      let easy = 0, med = 0, hard = 0;
+      AppState.flashcards.forEach(fc => {
+        const prog = AppState.progress[fc.id];
+        if (prog === 'easy') easy++;
+        else if (prog === 'medium') med++;
+        else if (prog === 'hard') hard++;
+      });
+
+      document.getElementById('st-fc-easy').textContent = easy;
+      document.getElementById('st-fc-medium').textContent = med;
+      document.getElementById('st-fc-hard').textContent = hard;
+      document.getElementById('st-fc-new').textContent = AppState.flashcards.length - (easy + med + hard);
+    }
+
+    /* --------------------------------------------------------------------------
+       7. MÓDULO DE PATÓGENOS Y FICHA DETALLADA
+       -------------------------------------------------------------------------- */
+    let currentTypeFilter = 'ALL';
+
+    function populateTopicSelectors() {
+      const selectors = [document.getElementById('pathogenTopicFilter'), document.getElementById('fcFilterTopic')];
+      selectors.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="ALL">Todos los Temas</option>';
+        AppState.topics.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.name;
+          opt.textContent = t.name;
+          sel.appendChild(opt);
+        });
+        sel.value = currentVal;
+      });
+    }
+
+    function renderPathogens() {
+      const grid = document.getElementById('pathogensGrid');
+      grid.innerHTML = '';
+
+      const query = document.getElementById('pathogenSearchInput').value.toLowerCase().trim();
+      const topicVal = document.getElementById('pathogenTopicFilter').value;
+
+      const filtered = AppState.pathogens.filter(p => {
+        const matchType = (currentTypeFilter === 'ALL' || p.type === currentTypeFilter);
+        const matchTopic = (topicVal === 'ALL' || p.topic === topicVal);
+        
+        let matchQuery = true;
+        if (query) {
+          const fullText = `${p.name} ${p.type} ${p.topic} ${p.subtopic || ''} ${p.keywords || ''} ${p.summary || ''} ${JSON.stringify(p.sections || {})}`.toLowerCase();
+          matchQuery = fullText.includes(query);
+        }
+
+        return matchType && matchTopic && matchQuery;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<p class="absent-info">No se encontraron patógenos con los criterios seleccionados.</p>';
+        return;
+      }
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        card.innerHTML = `
+          <div>
+            <span class="badge-type type-${p.type}">${getTypeLabel(p.type)}</span>
+            ${p.isDemo ? '<span class="demo-tag">DEMO</span>' : ''}
+            <div class="card-title">${escapeHTML(p.name)}</div>
+            <div class="card-subtitle">${escapeHTML(p.topic)}</div>
+            <div class="card-body">${escapeHTML(p.summary || 'Sin resumen disponible.')}</div>
+          </div>
+          <button class="btn active" style="width:100%; text-align:center;" onclick="openPathogenSheet('${p.id}')">Ver Ficha Completa</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function getTypeLabel(type) {
+      switch(type) {
+        case 'bacteria': return '🧫 Bacteria';
+        case 'virus': return '🦠 Virus';
+        case 'fungus': return '🍄 Hongo';
+        case 'parasite': return '🪱 Parásito';
+        default: return type;
+      }
+    }
+
+    function openPathogenSheet(id) {
+      const p = AppState.pathogens.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById('sheetBadge').textContent = getTypeLabel(p.type);
+      document.getElementById('sheetBadge').className = `badge-type type-${p.type}`;
+      document.getElementById('sheetTitle').textContent = p.name;
+      document.getElementById('sheetSubtitles').textContent = `${p.topic} ${p.subtopic ? '→ ' + p.subtopic : ''}`;
+      document.getElementById('sheetSummary').textContent = p.summary || '';
+
+      const grid = document.getElementById('sheetSectionsGrid');
+      grid.innerHTML = '';
+
+      if (p.sections && Object.keys(p.sections).length > 0) {
+        for (const [secName, secContent] of Object.entries(p.sections)) {
+          const box = document.createElement('div');
+          box.className = 'sheet-section-box';
+          box.innerHTML = `
+            <div class="sheet-section-title">${escapeHTML(secName)}</div>
+            <div>${secContent}</div>
+          `;
+          grid.appendChild(box);
+        }
+      } else {
+        grid.innerHTML = '<p class="absent-info">No hay información detallada en las secciones de esta ficha.</p>';
+      }
+
+      navigateTo('sec-ficha');
+    }
+
+    document.getElementById('pathogenSearchInput').addEventListener('input', renderPathogens);
+    document.getElementById('pathogenTopicFilter').addEventListener('change', renderPathogens);
+
+    document.getElementById('pathogenFilterGroup').addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        document.querySelectorAll('#pathogenFilterGroup .btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentTypeFilter = e.target.getAttribute('data-filter');
+        renderPathogens();
+      }
+    });
+
+    /* --------------------------------------------------------------------------
+       8. SECCIÓN TEMAS Y TEORÍA
+       -------------------------------------------------------------------------- */
+    function renderTopics() {
+      const container = document.getElementById('temasContainer');
+      container.innerHTML = '';
+
+      if (AppState.topics.length === 0) {
+        container.innerHTML = '<p class="absent-info">No hay temas registrados en la biblioteca.</p>';
+        return;
+      }
+
+      AppState.topics.forEach(t => {
+        const related = AppState.pathogens.filter(p => p.topic === t.name);
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        card.innerHTML = `
+          <div>
+            <div class="card-title">📚 ${escapeHTML(t.name)}</div>
+            <div class="card-body">${escapeHTML(t.description || 'Sin descripción.')}</div>
+            <div style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.5rem;">
+              Patógenos Relacionados (${related.length}):
+            </div>
+            <ul style="padding-left:1.2rem; font-size:0.9rem;">
+              ${related.length > 0 ? related.map(p => `<li>${escapeHTML(p.name)}</li>`).join('') : '<li class="absent-info">Ninguno asociado</li>'}
+            </ul>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderTheory() {
+      const grid = document.getElementById('teoriaGrid');
+      grid.innerHTML = '';
+
+      const query = document.getElementById('conceptSearchInput').value.toLowerCase().trim();
+      const filtered = AppState.concepts.filter(c => {
+        return !query || `${c.name} ${c.topic} ${c.content} ${c.keywords || ''}`.toLowerCase().includes(query);
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<p class="absent-info">No se encontraron conceptos teóricos.</p>';
+        return;
+      }
+
+      filtered.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        card.innerHTML = `
+          <div>
+            <div class="card-title">💡 ${escapeHTML(c.name)} ${c.isDemo ? '<span class="demo-tag">DEMO</span>' : ''}</div>
+            <div class="card-subtitle">${escapeHTML(c.topic)}</div>
+            <div class="card-body">${c.content}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    document.getElementById('conceptSearchInput').addEventListener('input', renderTheory);
+
+    /* --------------------------------------------------------------------------
+       9. SISTEMA DE FLASHCARDS DE APRENDIZAJE
+       -------------------------------------------------------------------------- */
+    let activeFcQueue = [];
+    let activeFcIndex = 0;
+
+    function startFlashcardsSession() {
+      const topicFilter = document.getElementById('fcFilterTopic').value;
+      const typeFilter = document.getElementById('fcFilterType').value;
+      const diffFilter = document.getElementById('fcFilterDiff').value;
+
+      activeFcQueue = AppState.flashcards.filter(fc => {
+        const matchTopic = (topicFilter === 'ALL' || fc.topic === topicFilter);
+        const matchType = (typeFilter === 'ALL' || fc.type === typeFilter);
+        
+        const currentDiff = AppState.progress[fc.id] || 'new';
+        const matchDiff = (diffFilter === 'ALL' || currentDiff === diffFilter);
+
+        return matchTopic && matchType && matchDiff;
+      });
+
+      // Aleatorizar cola
+      activeFcQueue.sort(() => Math.random() - 0.5);
+      activeFcIndex = 0;
+
+      const studyArea = document.getElementById('fcStudyArea');
+      if (activeFcQueue.length === 0) {
+        studyArea.style.display = 'block';
+        document.getElementById('currentFlashcard').innerHTML = '<p class="absent-info">No hay flashcards que coincidan con los filtros seleccionados.</p>';
+        document.getElementById('fcActionArea').style.display = 'none';
+        document.getElementById('fcDifficultyArea').style.display = 'none';
+        return;
+      }
+
+      studyArea.style.display = 'block';
+      showFlashcard();
+    }
+
+    function showFlashcard() {
+      if (activeFcIndex >= activeFcQueue.length) {
+        document.getElementById('currentFlashcard').innerHTML = '<h3>¡Sesión Completada! 🎉</h3><p>Has repasado todas las tarjetas seleccionadas.</p>';
+        document.getElementById('fcActionArea').style.display = 'none';
+        document.getElementById('fcDifficultyArea').style.display = 'none';
+        renderStats();
+        return;
+      }
+
+      const fc = activeFcQueue[activeFcIndex];
+      document.getElementById('fcQuestion').textContent = fc.question;
+      document.getElementById('fcAnswer').innerHTML = fc.answer;
+      document.getElementById('fcAnswer').classList.remove('visible');
+
+      document.getElementById('fcActionArea').style.display = 'block';
+      document.getElementById('fcDifficultyArea').style.display = 'none';
+    }
+
+    document.getElementById('btnStartFlashcards').addEventListener('click', startFlashcardsSession);
+
+    document.getElementById('btnShowAnswer').addEventListener('click', () => {
+      document.getElementById('fcAnswer').classList.add('visible');
+      document.getElementById('fcActionArea').style.display = 'none';
+      document.getElementById('fcDifficultyArea').style.display = 'flex';
+    });
+
+    document.querySelectorAll('#fcDifficultyArea button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const diff = e.target.getAttribute('data-diff');
+        const currentFc = activeFcQueue[activeFcIndex];
+        
+        if (currentFc) {
+          AppState.progress[currentFc.id] = diff;
+          saveToStorage();
+        }
+
+        activeFcIndex++;
+        showFlashcard();
+      });
+    });
+
+    /* --------------------------------------------------------------------------
+       10. BUSCADOR GLOBAL INTEGRADO
+       -------------------------------------------------------------------------- */
+    document.getElementById('globalSearchInput').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      if (q.length < 2) {
+        if (document.getElementById('sec-search-results').classList.contains('active')) {
+          navigateTo('sec-inicio');
+        }
+        return;
+      }
+
+      navigateTo('sec-search-results');
+      const container = document.getElementById('searchResultsContainer');
+      container.innerHTML = '';
+
+      const pathMatches = AppState.pathogens.filter(p => `${p.name} ${p.summary || ''} ${p.keywords || ''}`.toLowerCase().includes(q));
+      const topicMatches = AppState.topics.filter(t => `${t.name} ${t.description || ''}`.toLowerCase().includes(q));
+      const conceptMatches = AppState.concepts.filter(c => `${c.name} ${c.content}`.toLowerCase().includes(q));
+      const fcMatches = AppState.flashcards.filter(f => `${f.question} ${f.answer}`.toLowerCase().includes(q));
+
+      let html = '<div class="sheet-view">';
+      html += `<h3>Resultados para "${escapeHTML(q)}"</h3><br>`;
+
+      // Secciones de Resultados
+      html += `<h4>Patógenos Encontrados (${pathMatches.length}):</h4><ul>`;
+      html += pathMatches.length > 0 ? pathMatches.map(p => `<li style="cursor:pointer; color:var(--accent-color);" onclick="openPathogenSheet('${p.id}')">🔬 ${escapeHTML(p.name)}</li>`).join('') : '<li class="absent-info">Sin coincidencias</li>';
+      html += `</ul><br>`;
+
+      html += `<h4>Temas Encontrados (${topicMatches.length}):</h4><ul>`;
+      html += topicMatches.length > 0 ? topicMatches.map(t => `<li>📚 ${escapeHTML(t.name)}</li>`).join('') : '<li class="absent-info">Sin coincidencias</li>';
+      html += `</ul><br>`;
+
+      html += `<h4>Teoría y Conceptos Encontrados (${conceptMatches.length}):</h4><ul>`;
+      html += conceptMatches.length > 0 ? conceptMatches.map(c => `<li>💡 ${escapeHTML(c.name)}</li>`).join('') : '<li class="absent-info">Sin coincidencias</li>';
+      html += `</ul><br>`;
+
+      html += `<h4>Flashcards Encontradas (${fcMatches.length}):</h4><ul>`;
+      html += fcMatches.length > 0 ? fcMatches.map(f => `<li>🎴 ${escapeHTML(f.question)}</li>`).join('') : '<li class="absent-info">Sin coincidencias</li>';
+      html += `</ul></div>`;
+
+      container.innerHTML = html;
+    });
+
+    /* --------------------------------------------------------------------------
+       11. ENGINE DE IMPORTACIÓN SEGURA Y PARSER DE MÓDULOS HTML
+       -------------------------------------------------------------------------- */
+    document.getElementById('btnImportModule').addEventListener('click', () => {
+      const rawCode = document.getElementById('importCodeInput').value;
+      const feedback = document.getElementById('importFeedback');
+
+      if (!rawCode.trim()) {
+        feedback.style.color = '#dc2626';
+        feedback.textContent = 'El área de texto está vacía. Pega el HTML del módulo.';
+        return;
+      }
+
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(rawCode, 'text/html');
+        const modules = doc.querySelectorAll('[data-module-type]');
+
+        if (modules.length === 0) {
+          feedback.style.color = '#dc2626';
+          feedback.textContent = 'El módulo no tiene una estructura compatible (debe incluir el atributo data-module-type).';
+          return;
+        }
+
+        let importedCount = 0;
+        let rejectedCount = 0;
+
+        modules.forEach(mod => {
+          const modType = mod.getAttribute('data-module-type');
+          const id = mod.getAttribute('data-id');
+
+          if (!id) {
+            rejectedCount++;
+            return;
+          }
+
+          if (modType === 'pathogen') {
+            const name = mod.getAttribute('data-name');
+            const type = mod.getAttribute('data-type');
+            const topic = mod.getAttribute('data-topic');
+            const subtopic = mod.getAttribute('data-subtopic');
+            const summary = mod.getAttribute('data-summary');
+            const keywords = mod.getAttribute('data-keywords');
+
+            // Sanitización y parseo de secciones
+            const sections = {};
+            mod.querySelectorAll('[data-section]').forEach(sec => {
+              const secName = sec.getAttribute('data-section');
+              sections[secName] = sanitizeHTML(sec.innerHTML);
+            });
+
+            const newPathogen = { id, name, type, topic, subtopic, summary, keywords, sections };
+
+            // Evitar Duplicados (Actualización de registro si ya existe ID)
+            const idx = AppState.pathogens.findIndex(p => p.id === id);
+            if (idx >= 0) AppState.pathogens[idx] = newPathogen;
+            else AppState.pathogens.push(newPathogen);
+
+            // Crear Tema si no existe
+            if (topic && !AppState.topics.some(t => t.name === topic)) {
+              AppState.topics.push({ id: `topic-${topic}`, name: topic, description: 'Tema creado automáticamente por módulo de patógeno.' });
+            }
+
+            importedCount++;
+          } 
+          else if (modType === 'concept') {
+            const name = mod.getAttribute('data-name');
+            const topic = mod.getAttribute('data-topic');
+            const keywords = mod.getAttribute('data-keywords');
+            const content = sanitizeHTML(mod.innerHTML);
+
+            const newConcept = { id, name, topic, keywords, content };
+            const idx = AppState.concepts.findIndex(c => c.id === id);
+            if (idx >= 0) AppState.concepts[idx] = newConcept;
+            else AppState.concepts.push(newConcept);
+
+            importedCount++;
+          }
+          else if (modType === 'flashcard') {
+            const question = mod.querySelector('[data-field="question"]')?.textContent || '';
+            const answer = sanitizeHTML(mod.querySelector('[data-field="answer"]')?.innerHTML || '');
+            const topic = mod.getAttribute('data-topic');
+            const type = mod.getAttribute('data-type');
+
+            const newFc = { id, question, answer, topic, type };
+            const idx = AppState.flashcards.findIndex(f => f.id === id);
+            if (idx >= 0) AppState.flashcards[idx] = newFc;
+            else AppState.flashcards.push(newFc);
+
+            importedCount++;
+          }
+        });
+
+        saveToStorage();
+        refreshAllViews();
+
+        feedback.style.color = '#16a34a';
+        feedback.textContent = `Importación completada: ${importedCount} módulo(s) importados/actualizados correctamente (${rejectedCount} rechazados).`;
+        document.getElementById('importCodeInput').value = '';
+
+      } catch (err) {
+        feedback.style.color = '#dc2626';
+        feedback.textContent = 'Error procesando el HTML ingresado: ' + err.message;
+      }
+    });
+
+    document.getElementById('btnClearLibrary').addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que deseas eliminar todo el contenido personalizado y restablecer los datos por defecto?')) {
+        localStorage.clear();
+        loadFromStorage();
+        refreshAllViews();
+        alert('Biblioteca restablecida.');
+      }
+    });
+
+    /* --------------------------------------------------------------------------
+       12. SEGURIDAD: SANITIZACIÓN DE HTML EXTERNO
+       -------------------------------------------------------------------------- */
+    function sanitizeHTML(htmlString) {
+      const temp = document.createElement('div');
+      temp.innerHTML = htmlString;
+      
+      // Remover scripts e instrucciones inline potencialmente peligrosas
+      const scripts = temp.querySelectorAll('script');
+      scripts.forEach(s => s.remove());
+
+      const allElements = temp.querySelectorAll('*');
+      allElements.forEach(el => {
+        for (let i = el.attributes.length - 1; i >= 0; i--) {
+          const attr = el.attributes[i];
+          if (attr.name.startsWith('on')) { // Eliminar eventos onClick, onError, etc.
+            el.removeAttribute(attr.name);
+          }
+        }
+      });
+
+      return temp.innerHTML;
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       13. INICIALIZACIÓN GLOBAL DE APLICACIÓN
+       -------------------------------------------------------------------------- */
+    function refreshAllViews() {
+      renderStats();
+      populateTopicSelectors();
+      renderPathogens();
+      renderTopics();
+      renderTheory();
+    }
+
+    // Inicio de Aplicación
+    loadFromStorage();
+    applyConfig();
+    refreshAllViews();
+  </script>
+</body>
+</html>
