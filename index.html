@@ -1645,5 +1645,1755 @@
     applyConfig();
     refreshAllViews();
   </script>
+  <script>
+/* ==========================================================================
+   PAD BAUTIZP — JAVASCRIPT PRINCIPAL
+   Plataforma personal de estudio de Microbiología
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. ESTADO GLOBAL
+   -------------------------------------------------------------------------- */
+
+const AppState = {
+  pathogens: [],
+  topics: [],
+  concepts: [],
+  flashcards: [],
+  progress: {},
+  config: {
+    theme: 'light',
+    fontSize: 'medium',
+    compact: 'false'
+  }
+};
+
+
+/* --------------------------------------------------------------------------
+   2. DATOS MÍNIMOS DE DEMOSTRACIÓN
+   -------------------------------------------------------------------------- */
+
+const DEMO_DATA = {
+  pathogens: [
+    {
+      id: 'demo-staph-aureus',
+      name: 'Staphylococcus aureus',
+      type: 'bacteria',
+      topic: 'Infecciones Cutáneas y Sistémicas',
+      subtopic: 'Cocos Gram Positivos',
+      keywords: 'coagulasa, gram positivo, toxinas, aureus',
+      summary: 'Coco Gram positivo en racimos, catalasa y coagulasa positivo. [DATO DEMOSTRACIÓN]',
+      sections: {
+        'Morfología': 'Cocos Gram positivos agrupados en racimos irregulares.',
+        'Factores de virulencia': 'Coagulasa, Proteína A, Toxina del shock tóxico (TSST-1), Enterotoxinas.',
+        'Manifestaciones clínicas': 'Infecciones de piel y tejidos blandos, bacteriemia, endocarditis, intoxicación alimentaria.'
+      },
+      isDemo: true
+    },
+    {
+      id: 'demo-influenza-a',
+      name: 'Virus Influenza A',
+      type: 'virus',
+      topic: 'Infecciones Respiratorias',
+      subtopic: 'Virus ARN Envueltos',
+      keywords: 'ARN, hemaglutinina, neuraminidasa, gripe',
+      summary: 'Virus ARN monocatenario segmentado causante de la gripe estacional. [DATO DEMOSTRACIÓN]',
+      sections: {
+        'Estructura': 'Genoma de ARN monocatenario negativo segmentado (8 segmentos) con envoltura lipídica.',
+        'Patogenia': 'Infección del epitelio respiratorio vía hemaglutinina (HA) y liberación vía neuraminidasa (NA).'
+      },
+      isDemo: true
+    }
+  ],
+
+  topics: [
+    {
+      id: 'topic-Infecciones Cutáneas y Sistémicas',
+      name: 'Infecciones Cutáneas y Sistémicas',
+      description: 'Microorganismos que afectan la piel y causan cuadros sistémicos.'
+    },
+    {
+      id: 'topic-Infecciones Respiratorias',
+      name: 'Infecciones Respiratorias',
+      description: 'Patógenos de vías respiratorias superiores e inferiores.'
+    }
+  ],
+
+  concepts: [
+    {
+      id: 'demo-concept-coagulasa',
+      name: 'Coagulasa',
+      topic: 'Infecciones Cutáneas y Sistémicas',
+      content: 'Enzima producida por S. aureus que convierte el fibrinógeno en fibrina, formando un coágulo protector. [DATO DEMOSTRACIÓN]',
+      keywords: 'enzima, estafilococo, coágulo',
+      isDemo: true
+    }
+  ],
+
+  flashcards: [
+    {
+      id: 'demo-fc-1',
+      question: '¿Qué prueba bioquímica clave diferencia a Staphylococcus aureus de otros estafilococos?',
+      answer: 'La prueba de Coagulasa (S. aureus es Coagulasa positivo). [DATO DEMOSTRACIÓN]',
+      pathogenId: 'demo-staph-aureus',
+      topic: 'Infecciones Cutáneas y Sistémicas',
+      type: 'bacteria',
+      isDemo: true
+    }
+  ]
+};
+
+
+/* --------------------------------------------------------------------------
+   3. UTILIDADES
+   -------------------------------------------------------------------------- */
+
+function cloneData(data) {
+  return JSON.parse(JSON.stringify(data));
+}
+
+
+function sanitizeHTML(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+
+  template.content
+    .querySelectorAll('script, iframe, object, embed, link, meta, style')
+    .forEach(el => el.remove());
+
+  template.content.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(attr => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim().toLowerCase();
+
+      if (
+        name.startsWith('on') ||
+        value.startsWith('javascript:') ||
+        value.startsWith('data:text/html')
+      ) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+
+  return template.innerHTML;
+}
+
+
+function escapeHTML(value) {
+  const div = document.createElement('div');
+  div.textContent = value ?? '';
+  return div.innerHTML;
+}
+
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+
+function getTypeLabel(type) {
+  const labels = {
+    bacteria: 'Bacteria',
+    virus: 'Virus',
+    fungus: 'Hongo',
+    parasite: 'Parásito'
+  };
+
+  return labels[type] || type || 'Microorganismo';
+}
+
+
+function getTypeIcon(type) {
+  const icons = {
+    bacteria: '🧫',
+    virus: '🦠',
+    fungus: '🍄',
+    parasite: '🪱'
+  };
+
+  return icons[type] || '🔬';
+}
+
+
+/* --------------------------------------------------------------------------
+   4. LOCAL STORAGE
+   -------------------------------------------------------------------------- */
+
+const STORAGE_KEY = 'PAD_BAUTIZP_MICROBIOLOGIA';
+
+
+function saveToStorage() {
+  const data = {
+    pathogens: AppState.pathogens,
+    topics: AppState.topics,
+    concepts: AppState.concepts,
+    flashcards: AppState.flashcards,
+    progress: AppState.progress,
+    config: AppState.config
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+
+function loadFromStorage() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+
+  if (!stored) {
+    AppState.pathogens = cloneData(DEMO_DATA.pathogens);
+    AppState.topics = cloneData(DEMO_DATA.topics);
+    AppState.concepts = cloneData(DEMO_DATA.concepts);
+    AppState.flashcards = cloneData(DEMO_DATA.flashcards);
+    AppState.progress = {};
+    AppState.config = {
+      theme: 'light',
+      fontSize: 'medium',
+      compact: 'false'
+    };
+
+    saveToStorage();
+    return;
+  }
+
+  try {
+    const data = JSON.parse(stored);
+
+    AppState.pathogens = Array.isArray(data.pathogens) ? data.pathogens : [];
+    AppState.topics = Array.isArray(data.topics) ? data.topics : [];
+    AppState.concepts = Array.isArray(data.concepts) ? data.concepts : [];
+    AppState.flashcards = Array.isArray(data.flashcards) ? data.flashcards : [];
+    AppState.progress = data.progress || {};
+
+    AppState.config = {
+      theme: data.config?.theme || 'light',
+      fontSize: data.config?.fontSize || 'medium',
+      compact: data.config?.compact || 'false'
+    };
+
+  } catch (error) {
+    console.error('Error cargando biblioteca:', error);
+
+    AppState.pathogens = cloneData(DEMO_DATA.pathogens);
+    AppState.topics = cloneData(DEMO_DATA.topics);
+    AppState.concepts = cloneData(DEMO_DATA.concepts);
+    AppState.flashcards = cloneData(DEMO_DATA.flashcards);
+    AppState.progress = {};
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   5. CONFIGURACIÓN VISUAL
+   -------------------------------------------------------------------------- */
+
+function applyConfig() {
+  document.documentElement.dataset.theme = AppState.config.theme;
+  document.documentElement.dataset.fontSize = AppState.config.fontSize;
+  document.documentElement.dataset.compact = AppState.config.compact;
+
+  const fontSelect = document.getElementById('cfgFontSize');
+  const themeSelect = document.getElementById('cfgTheme');
+  const compactSelect = document.getElementById('cfgCompact');
+
+  if (fontSelect) fontSelect.value = AppState.config.fontSize;
+  if (themeSelect) themeSelect.value = AppState.config.theme;
+  if (compactSelect) compactSelect.value = AppState.config.compact;
+}
+
+
+function setupConfiguration() {
+
+  const fontSelect = document.getElementById('cfgFontSize');
+
+  if (fontSelect) {
+    fontSelect.addEventListener('change', () => {
+      AppState.config.fontSize = fontSelect.value;
+      applyConfig();
+      saveToStorage();
+    });
+  }
+
+  const themeSelect = document.getElementById('cfgTheme');
+
+  if (themeSelect) {
+    themeSelect.addEventListener('change', () => {
+      AppState.config.theme = themeSelect.value;
+      applyConfig();
+      saveToStorage();
+    });
+  }
+
+  const compactSelect = document.getElementById('cfgCompact');
+
+  if (compactSelect) {
+    compactSelect.addEventListener('change', () => {
+      AppState.config.compact = compactSelect.value;
+      applyConfig();
+      saveToStorage();
+    });
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   6. NAVEGACIÓN SPA
+   -------------------------------------------------------------------------- */
+
+function navigateTo(targetId) {
+
+  document.querySelectorAll('.section-view').forEach(section => {
+    section.classList.remove('active');
+  });
+
+  const target = document.getElementById(targetId);
+
+  if (target) {
+    target.classList.add('active');
+  }
+
+  document.querySelectorAll('.nav-item[data-target]').forEach(item => {
+    item.classList.toggle(
+      'active',
+      item.dataset.target === targetId
+    );
+  });
+
+  const sidebar = document.getElementById('sidebar');
+
+  if (window.innerWidth <= 768 && sidebar) {
+    sidebar.classList.remove('mobile-open');
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+
+function setupNavigation() {
+
+  document.querySelectorAll('.nav-item[data-target]').forEach(item => {
+
+    item.addEventListener('click', () => {
+      navigateTo(item.dataset.target);
+    });
+
+  });
+
+  const mobileBtn = document.querySelector('.mobile-menu-btn');
+
+  if (mobileBtn) {
+    mobileBtn.addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+
+      if (sidebar) {
+        sidebar.classList.toggle('mobile-open');
+      }
+    });
+  }
+
+  const toggleBtn = document.querySelector('.toggle-sidebar-btn');
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+
+      if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+      }
+    });
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   7. ESTADÍSTICAS DE INICIO
+   -------------------------------------------------------------------------- */
+
+function updateStats() {
+
+  const pathogens = AppState.pathogens;
+
+  const setText = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+
+  setText('st-total', pathogens.length);
+
+  setText(
+    'st-bacterias',
+    pathogens.filter(p => p.type === 'bacteria').length
+  );
+
+  setText(
+    'st-virus',
+    pathogens.filter(p => p.type === 'virus').length
+  );
+
+  setText(
+    'st-hongos',
+    pathogens.filter(p => p.type === 'fungus').length
+  );
+
+  setText(
+    'st-parasitos',
+    pathogens.filter(p => p.type === 'parasite').length
+  );
+
+  setText('st-temas', AppState.topics.length);
+  setText('st-conceptos', AppState.concepts.length);
+  setText('st-flashcards', AppState.flashcards.length);
+
+  updateProgressStats();
+}
+
+
+/* --------------------------------------------------------------------------
+   8. TEMAS
+   -------------------------------------------------------------------------- */
+
+function renderTopics() {
+
+  const container = document.getElementById('temasContainer');
+
+  if (!container) return;
+
+  if (AppState.topics.length === 0) {
+    container.innerHTML = `
+      <div class="card-item">
+        <div class="card-title">No hay temas</div>
+        <div class="card-body">
+          Todavía no se han agregado temas a la biblioteca.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = AppState.topics.map(topic => {
+
+    const pathogenCount = AppState.pathogens.filter(
+      p => p.topic === topic.name
+    ).length;
+
+    const conceptCount = AppState.concepts.filter(
+      c => c.topic === topic.name
+    ).length;
+
+    const flashcardCount = AppState.flashcards.filter(
+      f => f.topic === topic.name
+    ).length;
+
+    return `
+      <div class="card-item">
+
+        <div>
+          <div class="card-title">
+            ${escapeHTML(topic.name)}
+          </div>
+
+          <div class="card-subtitle">
+            ${escapeHTML(topic.description || '')}
+          </div>
+
+          <div class="card-body">
+            <strong>${pathogenCount}</strong> patógenos<br>
+            <strong>${conceptCount}</strong> conceptos<br>
+            <strong>${flashcardCount}</strong> flashcards
+          </div>
+        </div>
+
+        <button
+          class="btn"
+          onclick="filterByTopic('${escapeHTML(topic.name).replace(/'/g, "\\'")}')">
+          Ver contenido
+        </button>
+
+      </div>
+    `;
+
+  }).join('');
+}
+
+
+function filterByTopic(topicName) {
+
+  const select = document.getElementById('pathogenTopicFilter');
+
+  if (select) {
+    select.value = topicName;
+  }
+
+  navigateTo('sec-patogenos');
+  renderPathogens();
+}
+
+
+/* --------------------------------------------------------------------------
+   9. FILTROS DE PATÓGENOS
+   -------------------------------------------------------------------------- */
+
+let currentPathogenFilter = 'ALL';
+
+
+function populateTopicFilters() {
+
+  const selects = [
+    document.getElementById('pathogenTopicFilter'),
+    document.getElementById('fcFilterTopic')
+  ];
+
+  selects.forEach(select => {
+
+    if (!select) return;
+
+    const currentValue = select.value;
+
+    select.innerHTML = '<option value="ALL">Todos los Temas</option>';
+
+    AppState.topics.forEach(topic => {
+
+      const option = document.createElement('option');
+
+      option.value = topic.name;
+      option.textContent = topic.name;
+
+      select.appendChild(option);
+
+    });
+
+    if (
+      [...select.options].some(
+        option => option.value === currentValue
+      )
+    ) {
+      select.value = currentValue;
+    }
+
+  });
+}
+
+
+function renderPathogens() {
+
+  const grid = document.getElementById('pathogensGrid');
+
+  if (!grid) return;
+
+  const searchInput = document.getElementById('pathogenSearchInput');
+  const topicSelect = document.getElementById('pathogenTopicFilter');
+
+  const search = normalizeText(searchInput?.value || '');
+  const topic = topicSelect?.value || 'ALL';
+
+  let pathogens = [...AppState.pathogens];
+
+  if (currentPathogenFilter !== 'ALL') {
+    pathogens = pathogens.filter(
+      pathogen => pathogen.type === currentPathogenFilter
+    );
+  }
+
+  if (topic !== 'ALL') {
+    pathogens = pathogens.filter(
+      pathogen => pathogen.topic === topic
+    );
+  }
+
+  if (search) {
+
+    pathogens = pathogens.filter(pathogen => {
+
+      const sectionsText = Object.values(
+        pathogen.sections || {}
+      ).join(' ');
+
+      const searchableText = normalizeText([
+        pathogen.name,
+        pathogen.type,
+        pathogen.topic,
+        pathogen.subtopic,
+        pathogen.summary,
+        pathogen.keywords,
+        sectionsText
+      ].join(' '));
+
+      return searchableText.includes(search);
+    });
+
+  }
+
+  if (pathogens.length === 0) {
+
+    grid.innerHTML = `
+      <div class="card-item">
+        <div class="card-title">No se encontraron resultados</div>
+        <div class="card-body">
+          No hay microorganismos que coincidan con los filtros seleccionados.
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+  grid.innerHTML = pathogens.map(pathogen => {
+
+    const demoTag = pathogen.isDemo
+      ? '<span class="demo-tag">Demo</span>'
+      : '';
+
+    return `
+      <article class="card-item">
+
+        <div>
+          <span class="badge-type type-${escapeHTML(pathogen.type)}">
+            ${getTypeIcon(pathogen.type)}
+            ${escapeHTML(getTypeLabel(pathogen.type))}
+          </span>
+
+          <div class="card-title">
+            ${escapeHTML(pathogen.name)}
+            ${demoTag}
+          </div>
+
+          <div class="card-subtitle">
+            ${escapeHTML(pathogen.subtopic || '')}
+          </div>
+
+          <div class="card-body">
+            ${escapeHTML(pathogen.summary || 'Sin resumen disponible.')}
+          </div>
+
+          <div class="card-subtitle">
+            Tema: ${escapeHTML(pathogen.topic || 'Sin tema')}
+          </div>
+        </div>
+
+        <button
+          class="btn active"
+          onclick="openPathogen('${escapeHTML(pathogen.id).replace(/'/g, "\\'")}')">
+          Ver ficha
+        </button>
+
+      </article>
+    `;
+
+  }).join('');
+}
+
+
+function setupPathogenFilters() {
+
+  const searchInput = document.getElementById('pathogenSearchInput');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', renderPathogens);
+  }
+
+  const topicFilter = document.getElementById('pathogenTopicFilter');
+
+  if (topicFilter) {
+    topicFilter.addEventListener('change', renderPathogens);
+  }
+
+  const filterGroup = document.getElementById('pathogenFilterGroup');
+
+  if (filterGroup) {
+
+    filterGroup.addEventListener('click', event => {
+
+      const button = event.target.closest('[data-filter]');
+
+      if (!button) return;
+
+      currentPathogenFilter =
+        button.dataset.filter;
+
+      filterGroup
+        .querySelectorAll('.btn')
+        .forEach(btn => btn.classList.remove('active'));
+
+      button.classList.add('active');
+
+      renderPathogens();
+    });
+
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   10. FICHA INDIVIDUAL DE PATÓGENO
+   -------------------------------------------------------------------------- */
+
+function openPathogen(id) {
+
+  const pathogen = AppState.pathogens.find(
+    p => p.id === id
+  );
+
+  if (!pathogen) return;
+
+  const badge = document.getElementById('sheetBadge');
+  const title = document.getElementById('sheetTitle');
+  const subtitles = document.getElementById('sheetSubtitles');
+  const summary = document.getElementById('sheetSummary');
+  const sectionsGrid = document.getElementById('sheetSectionsGrid');
+
+  if (!badge || !title || !subtitles || !summary || !sectionsGrid) {
+    return;
+  }
+
+  badge.className =
+    `badge-type type-${pathogen.type}`;
+
+  badge.textContent =
+    `${getTypeIcon(pathogen.type)} ${getTypeLabel(pathogen.type)}`;
+
+  title.textContent =
+    pathogen.name || '';
+
+  subtitles.innerHTML = `
+    ${escapeHTML(pathogen.subtopic || '')}
+    ${pathogen.topic
+      ? ` · ${escapeHTML(pathogen.topic)}`
+      : ''}
+  `;
+
+  summary.textContent =
+    pathogen.summary || '';
+
+  const sections = pathogen.sections || {};
+
+  if (Object.keys(sections).length === 0) {
+
+    sectionsGrid.innerHTML = `
+      <div class="sheet-section-box">
+        <div class="sheet-section-title">
+          Información
+        </div>
+
+        <div class="absent-info">
+          No hay información adicional disponible.
+        </div>
+      </div>
+    `;
+
+  } else {
+
+    sectionsGrid.innerHTML =
+      Object.entries(sections).map(([name, content]) => {
+
+        return `
+          <div class="sheet-section-box">
+
+            <div class="sheet-section-title">
+              ${escapeHTML(name)}
+            </div>
+
+            <div>
+              ${sanitizeHTML(content)}
+            </div>
+
+          </div>
+        `;
+
+      }).join('');
+
+  }
+
+  navigateTo('sec-ficha');
+}
+
+
+/* --------------------------------------------------------------------------
+   11. TEORÍA Y CONCEPTOS
+   -------------------------------------------------------------------------- */
+
+function renderConcepts() {
+
+  const grid = document.getElementById('teoriaGrid');
+
+  if (!grid) return;
+
+  const searchInput =
+    document.getElementById('conceptSearchInput');
+
+  const search =
+    normalizeText(searchInput?.value || '');
+
+  let concepts = [...AppState.concepts];
+
+  if (search) {
+
+    concepts = concepts.filter(concept => {
+
+      const text = normalizeText([
+        concept.name,
+        concept.topic,
+        concept.keywords,
+        concept.content
+      ].join(' '));
+
+      return text.includes(search);
+    });
+
+  }
+
+  if (concepts.length === 0) {
+
+    grid.innerHTML = `
+      <div class="card-item">
+        <div class="card-title">
+          No se encontraron conceptos
+        </div>
+
+        <div class="card-body">
+          No hay conceptos que coincidan con la búsqueda.
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+  grid.innerHTML = concepts.map(concept => {
+
+    const demoTag = concept.isDemo
+      ? '<span class="demo-tag">Demo</span>'
+      : '';
+
+    return `
+      <article class="card-item">
+
+        <div>
+
+          <div class="card-title">
+            ${escapeHTML(concept.name)}
+            ${demoTag}
+          </div>
+
+          <div class="card-subtitle">
+            ${escapeHTML(concept.topic || '')}
+          </div>
+
+          <div class="card-body">
+            ${sanitizeHTML(concept.content || '')}
+          </div>
+
+          ${
+            concept.keywords
+              ? `<div class="card-subtitle">
+                  ${escapeHTML(concept.keywords)}
+                 </div>`
+              : ''
+          }
+
+        </div>
+
+      </article>
+    `;
+
+  }).join('');
+}
+
+
+function setupConceptSearch() {
+
+  const input =
+    document.getElementById('conceptSearchInput');
+
+  if (input) {
+    input.addEventListener('input', renderConcepts);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   12. FLASHCARDS
+   -------------------------------------------------------------------------- */
+
+let flashcardSession = [];
+let currentFlashcardIndex = 0;
+
+
+function getFilteredFlashcards() {
+
+  const topic =
+    document.getElementById('fcFilterTopic')?.value || 'ALL';
+
+  const type =
+    document.getElementById('fcFilterType')?.value || 'ALL';
+
+  const difficulty =
+    document.getElementById('fcFilterDiff')?.value || 'ALL';
+
+  let cards = [...AppState.flashcards];
+
+  if (topic !== 'ALL') {
+    cards = cards.filter(card => card.topic === topic);
+  }
+
+  if (type !== 'ALL') {
+    cards = cards.filter(card => card.type === type);
+  }
+
+  if (difficulty !== 'ALL') {
+
+    cards = cards.filter(card => {
+
+      const progress =
+        AppState.progress[card.id];
+
+      if (difficulty === 'new') {
+        return !progress;
+      }
+
+      return progress === difficulty;
+    });
+
+  }
+
+  return cards;
+}
+
+
+function startFlashcards() {
+
+  flashcardSession =
+    getFilteredFlashcards();
+
+  if (flashcardSession.length === 0) {
+
+    alert(
+      'No hay flashcards que coincidan con los filtros seleccionados.'
+    );
+
+    return;
+  }
+
+  currentFlashcardIndex = 0;
+
+  const studyArea =
+    document.getElementById('fcStudyArea');
+
+  if (studyArea) {
+    studyArea.style.display = 'block';
+  }
+
+  showCurrentFlashcard();
+}
+
+
+function showCurrentFlashcard() {
+
+  if (
+    currentFlashcardIndex >=
+    flashcardSession.length
+  ) {
+
+    finishFlashcardSession();
+    return;
+  }
+
+  const card =
+    flashcardSession[currentFlashcardIndex];
+
+  const question =
+    document.getElementById('fcQuestion');
+
+  const answer =
+    document.getElementById('fcAnswer');
+
+  const difficultyArea =
+    document.getElementById('fcDifficultyArea');
+
+  const actionArea =
+    document.getElementById('fcActionArea');
+
+  if (!question || !answer) return;
+
+  question.textContent =
+    card.question || '';
+
+  answer.innerHTML =
+    sanitizeHTML(card.answer || '');
+
+  answer.classList.remove('visible');
+
+  if (difficultyArea) {
+    difficultyArea.style.display = 'none';
+  }
+
+  if (actionArea) {
+    actionArea.style.display = 'block';
+  }
+}
+
+
+function showFlashcardAnswer() {
+
+  const answer =
+    document.getElementById('fcAnswer');
+
+  const difficultyArea =
+    document.getElementById('fcDifficultyArea');
+
+  const actionArea =
+    document.getElementById('fcActionArea');
+
+  if (answer) {
+    answer.classList.add('visible');
+  }
+
+  if (difficultyArea) {
+    difficultyArea.style.display = 'flex';
+  }
+
+  if (actionArea) {
+    actionArea.style.display = 'none';
+  }
+}
+
+
+function rateCurrentFlashcard(difficulty) {
+
+  const card =
+    flashcardSession[currentFlashcardIndex];
+
+  if (!card) return;
+
+  AppState.progress[card.id] =
+    difficulty;
+
+  saveToStorage();
+
+  currentFlashcardIndex++;
+
+  updateProgressStats();
+
+  showCurrentFlashcard();
+}
+
+
+function finishFlashcardSession() {
+
+  const studyArea =
+    document.getElementById('fcStudyArea');
+
+  if (studyArea) {
+    studyArea.style.display = 'none';
+  }
+
+  alert('Sesión de flashcards finalizada.');
+}
+
+
+function setupFlashcards() {
+
+  const startButton =
+    document.getElementById('btnStartFlashcards');
+
+  if (startButton) {
+    startButton.addEventListener(
+      'click',
+      startFlashcards
+    );
+  }
+
+  const answerButton =
+    document.getElementById('btnShowAnswer');
+
+  if (answerButton) {
+    answerButton.addEventListener(
+      'click',
+      showFlashcardAnswer
+    );
+  }
+
+  document
+    .querySelectorAll('#fcDifficultyArea [data-diff]')
+    .forEach(button => {
+
+      button.addEventListener('click', () => {
+
+        rateCurrentFlashcard(
+          button.dataset.diff
+        );
+
+      });
+
+    });
+}
+
+
+/* --------------------------------------------------------------------------
+   13. REPASO Y PROGRESO
+   -------------------------------------------------------------------------- */
+
+function updateProgressStats() {
+
+  let easy = 0;
+  let medium = 0;
+  let hard = 0;
+  let newCards = 0;
+
+  AppState.flashcards.forEach(card => {
+
+    const status =
+      AppState.progress[card.id];
+
+    if (status === 'easy') easy++;
+    else if (status === 'medium') medium++;
+    else if (status === 'hard') hard++;
+    else newCards++;
+
+  });
+
+  const setText = (id, value) => {
+
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.textContent = value;
+    }
+
+  };
+
+  setText('st-fc-easy', easy);
+  setText('st-fc-medium', medium);
+  setText('st-fc-hard', hard);
+  setText('st-fc-new', newCards);
+}
+
+
+/* --------------------------------------------------------------------------
+   14. BUSCADOR GLOBAL
+   -------------------------------------------------------------------------- */
+
+function globalSearch(query) {
+
+  const search =
+    normalizeText(query);
+
+  const container =
+    document.getElementById('searchResultsContainer');
+
+  if (!container) return;
+
+  if (!search) {
+
+    container.innerHTML = `
+      <div class="card-item">
+        Escribí algo para buscar en la biblioteca.
+      </div>
+    `;
+
+    return;
+  }
+
+  const results = [];
+
+  AppState.pathogens.forEach(pathogen => {
+
+    const text = normalizeText([
+      pathogen.name,
+      pathogen.type,
+      pathogen.topic,
+      pathogen.subtopic,
+      pathogen.summary,
+      pathogen.keywords,
+      Object.values(pathogen.sections || {}).join(' ')
+    ].join(' '));
+
+    if (text.includes(search)) {
+
+      results.push({
+        type: 'pathogen',
+        title: pathogen.name,
+        subtitle: getTypeLabel(pathogen.type),
+        description: pathogen.summary,
+        id: pathogen.id
+      });
+
+    }
+
+  });
+
+  AppState.concepts.forEach(concept => {
+
+    const text = normalizeText([
+      concept.name,
+      concept.topic,
+      concept.keywords,
+      concept.content
+    ].join(' '));
+
+    if (text.includes(search)) {
+
+      results.push({
+        type: 'concept',
+        title: concept.name,
+        subtitle: concept.topic || 'Concepto',
+        description: concept.content,
+        id: concept.id
+      });
+
+    }
+
+  });
+
+  AppState.flashcards.forEach(card => {
+
+    const text = normalizeText([
+      card.question,
+      card.answer,
+      card.topic,
+      card.type
+    ].join(' '));
+
+    if (text.includes(search)) {
+
+      results.push({
+        type: 'flashcard',
+        title: card.question,
+        subtitle: 'Flashcard',
+        description: card.answer,
+        id: card.id
+      });
+
+    }
+
+  });
+
+  if (results.length === 0) {
+
+    container.innerHTML = `
+      <div class="card-item">
+        <div class="card-title">
+          Sin resultados
+        </div>
+
+        <div class="card-body">
+          No se encontró contenido relacionado con
+          "<strong>${escapeHTML(query)}</strong>".
+        </div>
+      </div>
+    `;
+
+    navigateTo('sec-search-results');
+    return;
+  }
+
+  container.innerHTML = results.map(result => {
+
+    return `
+      <div class="card-item">
+
+        <div class="card-title">
+          ${escapeHTML(result.title)}
+        </div>
+
+        <div class="card-subtitle">
+          ${escapeHTML(result.subtitle)}
+        </div>
+
+        <div class="card-body">
+          ${sanitizeHTML(result.description || '')}
+        </div>
+
+        ${
+          result.type === 'pathogen'
+            ? `<button
+                class="btn active"
+                onclick="openPathogen('${escapeHTML(result.id).replace(/'/g, "\\'")}')">
+                Ver ficha
+               </button>`
+            : ''
+        }
+
+      </div>
+    `;
+
+  }).join('');
+
+  navigateTo('sec-search-results');
+}
+
+
+function setupGlobalSearch() {
+
+  const input =
+    document.querySelector('.global-search-input');
+
+  if (!input) return;
+
+  input.addEventListener('keydown', event => {
+
+    if (event.key === 'Enter') {
+      globalSearch(input.value);
+    }
+
+  });
+
+}
+
+
+/* --------------------------------------------------------------------------
+   15. IMPORTACIÓN DE MÓDULOS HTML
+   -------------------------------------------------------------------------- */
+
+function setupModuleImporter() {
+
+  const importButton =
+    document.getElementById('btnImportModule');
+
+  if (!importButton) return;
+
+  importButton.addEventListener('click', () => {
+
+    const rawCode =
+      document.getElementById('importCodeInput')?.value || '';
+
+    const feedback =
+      document.getElementById('importFeedback');
+
+    if (!rawCode.trim()) {
+
+      feedback.style.color = '#dc2626';
+      feedback.textContent =
+        'El área de texto está vacía. Pega el HTML del módulo.';
+
+      return;
+    }
+
+    try {
+
+      const parser =
+        new DOMParser();
+
+      const doc =
+        parser.parseFromString(
+          rawCode,
+          'text/html'
+        );
+
+      const modules =
+        doc.querySelectorAll(
+          '[data-module-type]'
+        );
+
+      if (modules.length === 0) {
+
+        feedback.style.color = '#dc2626';
+
+        feedback.textContent =
+          'El módulo no tiene una estructura compatible (debe incluir el atributo data-module-type).';
+
+        return;
+      }
+
+      let importedCount = 0;
+      let rejectedCount = 0;
+
+      modules.forEach(mod => {
+
+        const modType =
+          mod.getAttribute('data-module-type');
+
+        const id =
+          mod.getAttribute('data-id');
+
+        if (!id) {
+
+          rejectedCount++;
+          return;
+
+        }
+
+
+        /* --------------------------------------------------------------
+           PATÓGENO
+           -------------------------------------------------------------- */
+
+        if (modType === 'pathogen') {
+
+          const name =
+            mod.getAttribute('data-name');
+
+          const type =
+            mod.getAttribute('data-type');
+
+          const topic =
+            mod.getAttribute('data-topic');
+
+          const subtopic =
+            mod.getAttribute('data-subtopic');
+
+          const summary =
+            mod.getAttribute('data-summary');
+
+          const keywords =
+            mod.getAttribute('data-keywords');
+
+
+          const sections = {};
+
+          mod
+            .querySelectorAll('[data-section]')
+            .forEach(sec => {
+
+              const secName =
+                sec.getAttribute('data-section');
+
+              if (secName) {
+
+                sections[secName] =
+                  sanitizeHTML(sec.innerHTML);
+
+              }
+
+            });
+
+
+          const newPathogen = {
+            id,
+            name,
+            type,
+            topic,
+            subtopic,
+            summary,
+            keywords,
+            sections
+          };
+
+
+          const idx =
+            AppState.pathogens.findIndex(
+              p => p.id === id
+            );
+
+
+          if (idx >= 0) {
+            AppState.pathogens[idx] =
+              newPathogen;
+          } else {
+            AppState.pathogens.push(
+              newPathogen
+            );
+          }
+
+
+          if (
+            topic &&
+            !AppState.topics.some(
+              t => t.name === topic
+            )
+          ) {
+
+            AppState.topics.push({
+              id: `topic-${topic}`,
+              name: topic,
+              description:
+                'Tema creado automáticamente por módulo de patógeno.'
+            });
+
+          }
+
+
+          importedCount++;
+        }
+
+
+        /* --------------------------------------------------------------
+           CONCEPTO
+           -------------------------------------------------------------- */
+
+        else if (modType === 'concept') {
+
+          const name =
+            mod.getAttribute('data-name');
+
+          const topic =
+            mod.getAttribute('data-topic');
+
+          const keywords =
+            mod.getAttribute('data-keywords');
+
+          const content =
+            sanitizeHTML(mod.innerHTML);
+
+
+          const newConcept = {
+            id,
+            name,
+            topic,
+            keywords,
+            content
+          };
+
+
+          const idx =
+            AppState.concepts.findIndex(
+              c => c.id === id
+            );
+
+
+          if (idx >= 0) {
+            AppState.concepts[idx] =
+              newConcept;
+          } else {
+            AppState.concepts.push(
+              newConcept
+            );
+          }
+
+
+          if (
+            topic &&
+            !AppState.topics.some(
+              t => t.name === topic
+            )
+          ) {
+
+            AppState.topics.push({
+              id: `topic-${topic}`,
+              name: topic,
+              description:
+                'Tema creado automáticamente por módulo de concepto.'
+            });
+
+          }
+
+
+          importedCount++;
+        }
+
+
+        /* --------------------------------------------------------------
+           FLASHCARD
+           -------------------------------------------------------------- */
+
+        else if (modType === 'flashcard') {
+
+          const question =
+            mod.querySelector(
+              '[data-field="question"]'
+            )?.textContent || '';
+
+          const answer =
+            sanitizeHTML(
+              mod.querySelector(
+                '[data-field="answer"]'
+              )?.innerHTML || ''
+            );
+
+          const topic =
+            mod.getAttribute('data-topic');
+
+          const type =
+            mod.getAttribute('data-type');
+
+
+          const newFc = {
+            id,
+            question,
+            answer,
+            topic,
+            type
+          };
+
+
+          const idx =
+            AppState.flashcards.findIndex(
+              f => f.id === id
+            );
+
+
+          if (idx >= 0) {
+            AppState.flashcards[idx] =
+              newFc;
+          } else {
+            AppState.flashcards.push(
+              newFc
+            );
+          }
+
+
+          if (
+            topic &&
+            !AppState.topics.some(
+              t => t.name === topic
+            )
+          ) {
+
+            AppState.topics.push({
+              id: `topic-${topic}`,
+              name: topic,
+              description:
+                'Tema creado automáticamente por módulo de flashcard.'
+            });
+
+          }
+
+
+          importedCount++;
+        }
+
+
+        /* --------------------------------------------------------------
+           TIPO DESCONOCIDO
+           -------------------------------------------------------------- */
+
+        else {
+
+          rejectedCount++;
+
+        }
+
+      });
+
+
+      saveToStorage();
+      refreshAllViews();
+
+
+      feedback.style.color = '#16a34a';
+
+      feedback.textContent =
+        `Importación completada: ${importedCount} módulo(s) importados/actualizados correctamente (${rejectedCount} rechazados).`;
+
+
+      const input =
+        document.getElementById('importCodeInput');
+
+      if (input) {
+        input.value = '';
+      }
+
+
+    } catch (err) {
+
+      feedback.style.color = '#dc2626';
+
+      feedback.textContent =
+        'Error procesando el HTML ingresado: ' +
+        err.message;
+
+      console.error(err);
+
+    }
+
+  });
+
+
+  /* ----------------------------------------------------------------------
+     RESTABLECER BIBLIOTECA
+     ---------------------------------------------------------------------- */
+
+  const clearButton =
+    document.getElementById('btnClearLibrary');
+
+  if (clearButton) {
+
+    clearButton.addEventListener('click', () => {
+
+      const confirmed =
+        confirm(
+          '¿Estás seguro de que deseas eliminar todo el contenido personalizado y restablecer los datos por defecto?'
+        );
+
+      if (!confirmed) return;
+
+      localStorage.removeItem(STORAGE_KEY);
+
+      loadFromStorage();
+
+      refreshAllViews();
+
+      alert('Biblioteca restablecida.');
+
+    });
+
+  }
+
+}
+
+
+/* --------------------------------------------------------------------------
+   16. ACTUALIZAR TODA LA INTERFAZ
+   -------------------------------------------------------------------------- */
+
+function refreshAllViews() {
+
+  updateStats();
+  populateTopicFilters();
+  renderTopics();
+  renderPathogens();
+  renderConcepts();
+  updateProgressStats();
+
+}
+
+
+/* --------------------------------------------------------------------------
+   17. INICIALIZACIÓN
+   -------------------------------------------------------------------------- */
+
+function initApp() {
+
+  loadFromStorage();
+
+  applyConfig();
+
+  setupNavigation();
+
+  setupConfiguration();
+
+  setupPathogenFilters();
+
+  setupConceptSearch();
+
+  setupFlashcards();
+
+  setupGlobalSearch();
+
+  setupModuleImporter();
+
+  refreshAllViews();
+
+  navigateTo('sec-inicio');
+
+  console.log('PAD Microbiología iniciado correctamente.');
+}
+
+
+/* --------------------------------------------------------------------------
+   18. ARRANQUE
+   -------------------------------------------------------------------------- */
+
+if (document.readyState === 'loading') {
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    initApp
+  );
+
+} else {
+
+  initApp();
+
+}
+
+</script>
 </body>
 </html>
