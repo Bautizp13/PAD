@@ -892,12 +892,40 @@
           
           <textarea id="importCodeInput" rows="10" style="width:100%; border-radius:var(--radius-lg); border:1px solid var(--border-color); padding:1rem; font-family:monospace; background:var(--bg-primary); color:var(--text-primary);" placeholder="<article data-module-type=&quot;pathogen&quot; data-id=&quot;...&quot;> ... </article>"></textarea>
           
-          <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap;">
-            <button class="btn active" id="btnImportModule">Importar Módulo HTML</button>
-            <button class="btn" id="btnClearLibrary" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;">Restablecer Biblioteca Completa</button>
-          </div>
-          <div id="importFeedback" style="margin-top:1rem; font-weight:600;"></div>
-        </div>
+        <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap;">
+
+  <button class="btn active" id="btnImportModule">
+    Importar Módulo HTML
+  </button>
+
+  <button class="btn" id="btnExportLibrary">
+    Descargar library.json
+  </button>
+
+  <label class="btn" style="cursor:pointer;">
+    Importar library.json
+    <input
+      type="file"
+      id="libraryJsonInput"
+      accept=".json,application/json"
+      style="display:none;"
+    >
+  </label>
+
+  <button
+    class="btn"
+    id="btnClearLibrary"
+    style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;"
+  >
+    Restablecer Biblioteca Completa
+  </button>
+
+</div>
+
+<div
+  id="importFeedback"
+  style="margin-top:1rem; font-weight:600;"
+></div>
       </section>
 
       <!-- VISTA: CONFIGURACIÓN -->
@@ -943,19 +971,157 @@
    1. ESTADO GLOBAL
    -------------------------------------------------------------------------- */
 
-const AppState = {
-  pathogens: [],
-  topics: [],
-  concepts: [],
-  flashcards: [],
-  progress: {},
-  config: {
-    theme: 'light',
-    fontSize: 'medium',
-    compact: 'false'
-  }
-};
+/* ==========================================================================
+   BIBLIOTECA COMPARTIDA - library.json
+   ========================================================================== */
 
+const LIBRARY_URL = './library.json';
+
+async function loadSharedLibrary() {
+  try {
+    const response = await fetch(LIBRARY_URL + '?v=' + Date.now());
+
+    if (!response.ok) {
+      throw new Error('No se pudo cargar library.json');
+    }
+
+    const library = await response.json();
+
+    AppState.pathogens = Array.isArray(library.pathogens)
+      ? library.pathogens
+      : [];
+
+    AppState.topics = Array.isArray(library.topics)
+      ? library.topics
+      : [];
+
+    AppState.concepts = Array.isArray(library.concepts)
+      ? library.concepts
+      : [];
+
+    AppState.flashcards = Array.isArray(library.flashcards)
+      ? library.flashcards
+      : [];
+
+    AppState.progress = library.progress || {};
+
+    console.log('Biblioteca compartida cargada correctamente.');
+
+    refreshAllViews();
+
+  } catch (error) {
+    console.warn('No se pudo cargar library.json:', error);
+
+    /*
+      Si library.json todavía no existe o hay un problema,
+      la aplicación puede continuar utilizando los datos locales.
+    */
+    loadFromStorage();
+    refreshAllViews();
+  }
+}
+
+
+/* ==========================================================================
+   EXPORTAR BIBLIOTECA
+   ========================================================================== */
+
+function exportLibraryJSON() {
+
+  const library = {
+    pathogens: AppState.pathogens,
+    topics: AppState.topics,
+    concepts: AppState.concepts,
+    flashcards: AppState.flashcards,
+    progress: AppState.progress
+  };
+
+  const json = JSON.stringify(library, null, 2);
+
+  const blob = new Blob(
+    [json],
+    { type: 'application/json;charset=utf-8' }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = 'library.json';
+
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}
+
+
+/* ==========================================================================
+   IMPORTAR BIBLIOTECA JSON
+   ========================================================================== */
+
+function importLibraryJSON(file) {
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+
+    try {
+
+      const library = JSON.parse(event.target.result);
+
+      AppState.pathogens = Array.isArray(library.pathogens)
+        ? library.pathogens
+        : [];
+
+      AppState.topics = Array.isArray(library.topics)
+        ? library.topics
+        : [];
+
+      AppState.concepts = Array.isArray(library.concepts)
+        ? library.concepts
+        : [];
+
+      AppState.flashcards = Array.isArray(library.flashcards)
+        ? library.flashcards
+        : [];
+
+      AppState.progress = library.progress || {};
+
+      saveToStorage();
+      refreshAllViews();
+
+      const feedback =
+        document.getElementById('importFeedback');
+
+      if (feedback) {
+        feedback.style.color = '#16a34a';
+        feedback.textContent =
+          'Biblioteca library.json cargada correctamente.';
+      }
+
+    } catch (error) {
+
+      const feedback =
+        document.getElementById('importFeedback');
+
+      if (feedback) {
+        feedback.style.color = '#dc2626';
+        feedback.textContent =
+          'El archivo library.json no es válido.';
+      }
+
+      console.error(error);
+    }
+  };
+
+  reader.readAsText(file);
+}
 
 /* --------------------------------------------------------------------------
    2. DATOS DE DEMOSTRACIÓN
@@ -2963,7 +3129,35 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Biblioteca restablecida.');
       }
     });
+/* ==========================================================================
+   BOTONES DE BIBLIOTECA COMPARTIDA
+   ========================================================================== */
 
+document
+  .getElementById('btnExportLibrary')
+  .addEventListener('click', () => {
+
+    exportLibraryJSON();
+
+    const feedback =
+      document.getElementById('importFeedback');
+
+    feedback.style.color = '#16a34a';
+    feedback.textContent =
+      'Biblioteca exportada. Reemplazá library.json en GitHub con el archivo descargado.';
+  });
+
+
+document
+  .getElementById('libraryJsonInput')
+  .addEventListener('change', (event) => {
+
+    const file = event.target.files[0];
+
+    importLibraryJSON(file);
+
+    event.target.value = '';
+  });
     /* --------------------------------------------------------------------------
        12. SEGURIDAD: SANITIZACIÓN DE HTML EXTERNO
        -------------------------------------------------------------------------- */
@@ -4755,15 +4949,11 @@ function initApp() {
 
 if (document.readyState === 'loading') {
 
-  document.addEventListener(
-    'DOMContentLoaded',
-    initApp
-  );
+document.addEventListener('DOMContentLoaded', async () => {
 
-} else {
+  await loadSharedLibrary();
 
-  initApp();
-
+  refreshAllViews();
 }
 
 </script>
