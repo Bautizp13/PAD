@@ -561,6 +561,40 @@ textarea.code-input{
         </div>
       </section>
 
+      <!-- FICHA DE TEMA (solo ese tema, para estudiar) -->
+      <section id="sec-tema-ficha" class="section-view">
+        <button class="btn" onclick="navigateTo('sec-temas')" style="margin-bottom:1.25rem;">← Volver a temas</button>
+        <div class="sheet-view">
+          <div class="sheet-header">
+            <span class="badge-type" style="background:var(--accent-light); color:var(--accent-color);">📚 TEMA</span>
+            <h1 id="temaSheetTitle" style="margin-top:.6rem;"></h1>
+            <div id="temaSheetImageHost"></div>
+            <p id="temaSheetDescription" style="font-weight:500; color:var(--text-secondary);"></p>
+            <div style="margin-top:.9rem;">
+              <button class="btn gold" id="temaStudyFlashcardsBtn" style="display:none;">🎴 Repasar flashcards de este tema</button>
+            </div>
+          </div>
+          <div id="temaPathogensHost"></div>
+          <div id="temaConceptsHost"></div>
+        </div>
+      </section>
+
+      <!-- FICHA DE CONCEPTO INDIVIDUAL -->
+      <section id="sec-concepto-ficha" class="section-view">
+        <button class="btn" id="btnVolverConcepto" style="margin-bottom:1.25rem;">← Volver a teoría</button>
+        <div class="sheet-view">
+          <div class="sheet-header">
+            <span class="badge-type" style="background:var(--accent-light); color:var(--accent-color);">📖 CONCEPTO</span>
+            <h1 id="conceptoSheetTitle" style="margin-top:.6rem;"></h1>
+            <div id="conceptoSheetImageHost"></div>
+            <div id="conceptoSheetTopic" style="color:var(--text-secondary); font-size:.88rem; margin:.4rem 0 .75rem; font-family:var(--font-mono);"></div>
+          </div>
+          <div class="section-block">
+            <div class="section-block-content" id="conceptoSheetContent"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- TEORÍA -->
       <section id="sec-teoria" class="section-view">
         <div class="eyebrow">Catálogo</div>
@@ -1110,58 +1144,85 @@ function renderTopics(){
     return;
   }
 
-  container.innerHTML = AppState.topics.map((topic, idx) => {
-    const pats = AppState.pathogens.filter(p => p.topic === topic.name);
-    const cons = AppState.concepts.filter(c => c.topic === topic.name);
-    const blockId = 'topicBlock-' + idx;
-
-    const patHTML = pats.length ? `
-      <div class="topic-subhead">🔬 Patógenos de este tema</div>
-      <div class="topic-mini-grid">
-        ${pats.map(p => `
-          <div class="topic-mini-card" onclick="event.stopPropagation(); openPathogen('${p.id}')">
-            <span>${getTypeIcon(p.type)}</span><span>${escapeHTML(p.name)}</span>
-          </div>`).join('')}
-      </div>` : '';
-
-    const conHTML = cons.length ? `
-      <div class="topic-subhead">📖 Conceptos de este tema</div>
-      <div class="topic-mini-grid">
-        ${cons.map(c => `
-          <div class="topic-mini-card" onclick="event.stopPropagation(); navigateTo('sec-teoria'); document.getElementById('conceptSearchInput').value='${escapeHTML(c.name).replace(/'/g,"\\'")}'; renderConcepts();">
-            <span>📖</span><span>${escapeHTML(c.name)}</span>
-          </div>`).join('')}
-      </div>` : '';
-
-    const emptyHTML = (!pats.length && !cons.length) ? `<p style="color:var(--text-secondary); font-size:.85rem;">Todavía no hay patógenos ni conceptos etiquetados con este tema.</p>` : '';
-
+  container.className = 'grid-cards';
+  container.innerHTML = AppState.topics.map(topic => {
+    const pats = AppState.pathogens.filter(p => p.topic === topic.name).length;
+    const cons = AppState.concepts.filter(c => c.topic === topic.name).length;
     return `
-      <div class="topic-block" id="${blockId}">
-        <div class="topic-block-head" onclick="toggleTopicBlock('${blockId}')">
-          <span class="topic-tag">TEMA</span>
-          <div class="topic-block-title">
-            <h3>${escapeHTML(topic.name)}</h3>
-            <p>${escapeHTML(topic.description || 'Sin descripción.')} — ${pats.length} patógeno(s) · ${cons.length} concepto(s)</p>
-          </div>
-          <span class="topic-chevron">▾</span>
-        </div>
-        <div class="topic-block-body">
-          ${topic.image ? `<img class="topic-image" src="${escapeHTML(topic.image)}" alt="${escapeHTML(topic.name)}" loading="lazy" onerror="this.remove()">` : ''}
-          ${patHTML}${conHTML}${emptyHTML}
+      <div class="module-card" onclick="openTopicStudy('${escapeHTML(topic.name).replace(/'/g,"\\'")}')">
+        ${topic.image ? `<img class="card-thumb" src="${escapeHTML(topic.image)}" alt="${escapeHTML(topic.name)}" loading="lazy" onerror="this.remove()">` : ''}
+        <div class="card-ribbon" style="background:var(--accent-light); color:var(--accent-color);"><span>📚 TEMA</span></div>
+        <div class="card-body">
+          <div class="card-title">${escapeHTML(topic.name)}</div>
+          <div class="card-meta">${pats} patógeno(s) · ${cons} concepto(s)</div>
+          <div class="card-dotted"></div>
+          <div class="card-summary">${escapeHTML(topic.description || 'Sin descripción.')}</div>
         </div>
       </div>`;
   }).join('');
 }
 
-function toggleTopicBlock(blockId){
-  document.getElementById(blockId)?.classList.toggle('open');
+function openTopicStudy(name){
+  const topic = AppState.topics.find(t => t.name === name);
+  if (!topic) return;
+
+  setText('temaSheetTitle', topic.name);
+  setText('temaSheetDescription', topic.description || 'Sin descripción.');
+
+  const imgHost = document.getElementById('temaSheetImageHost');
+  if (imgHost){
+    imgHost.innerHTML = topic.image ? `<img class="topic-image" src="${escapeHTML(topic.image)}" alt="${escapeHTML(topic.name)}" loading="lazy" onerror="this.remove()">` : '';
+  }
+
+  const pats = AppState.pathogens.filter(p => p.topic === name);
+  const cons = AppState.concepts.filter(c => c.topic === name);
+
+  const patHost = document.getElementById('temaPathogensHost');
+  if (patHost){
+    patHost.innerHTML = pats.length ? `
+      <h2 class="section-heading">🔬 Patógenos de este tema</h2>
+      <div class="grid-cards" style="margin-bottom:2rem;">
+        ${pats.map(p => `
+          <div class="module-card" onclick="openPathogen('${p.id}')">
+            <div class="card-ribbon ${getTypeBadgeClass(p.type)}"><span>${getTypeIcon(p.type)} ${getTypeLabel(p.type)}</span></div>
+            <div class="card-body"><div class="card-title">${escapeHTML(p.name)}</div><div class="card-summary">${escapeHTML(p.summary||'')}</div></div>
+          </div>`).join('')}
+      </div>` : '';
+  }
+
+  const conHost = document.getElementById('temaConceptsHost');
+  if (conHost){
+    conHost.innerHTML = cons.length ? `
+      <h2 class="section-heading">📖 Teoría de este tema</h2>
+      <div class="sheet-sections-grid" style="margin-bottom:1rem;">
+        ${cons.map(c => `
+          <div class="section-block">
+            <h4>${escapeHTML(c.name)}</h4>
+            <div class="section-block-content">${sanitizeHTML(c.content || '')}</div>
+          </div>`).join('')}
+      </div>` : '';
+  }
+
+  if (!pats.length && !cons.length && patHost){
+    patHost.innerHTML = emptyState('📚', 'Sin contenido todavía', 'Este tema todavía no tiene patógenos ni conceptos asociados.');
+  }
+
+  const fcCount = AppState.flashcards.filter(f => f.topic === name).length;
+  const fcBtn = document.getElementById('temaStudyFlashcardsBtn');
+  if (fcBtn){
+    fcBtn.style.display = fcCount ? 'inline-flex' : 'none';
+    fcBtn.onclick = () => {
+      navigateTo('sec-flashcards');
+      const sel = document.getElementById('fcFilterTopic');
+      if (sel) sel.value = name;
+    };
+  }
+
+  navigateTo('sec-tema-ficha');
 }
 
 function filterByTopic(topicName){
-  navigateTo('sec-patogenos');
-  const select = document.getElementById('pathogenTopicFilter');
-  if (select){ select.value = topicName; }
-  renderPathogens();
+  openTopicStudy(topicName);
 }
 
 function populateTopicFilters(){
@@ -1338,7 +1399,7 @@ function renderConcepts(){
   }
 
   grid.innerHTML = list.map(c => `
-    <div class="module-card" style="cursor:default;">
+    <div class="module-card" onclick="openConcept('${c.id}')">
       ${c.image ? `<img class="card-thumb" src="${escapeHTML(c.image)}" alt="${escapeHTML(c.name)}" loading="lazy" onerror="this.remove()">` : ''}
       <div class="card-ribbon" style="background:var(--accent-light); color:var(--accent-color);">
         <span>📖 CONCEPTO</span>${c.isDemo ? '<span class="demo-tag">Demo</span>' : ''}
@@ -1350,6 +1411,24 @@ function renderConcepts(){
         <div class="card-summary">${sanitizeHTML(c.content || '')}</div>
       </div>
     </div>`).join('');
+}
+
+function openConcept(id){
+  const c = AppState.concepts.find(x => x.id === id);
+  if (!c) return;
+  setText('conceptoSheetTitle', c.name);
+  setText('conceptoSheetTopic', c.topic || 'Sin tema');
+  const imgHost = document.getElementById('conceptoSheetImageHost');
+  if (imgHost){
+    imgHost.innerHTML = c.image ? `<img class="topic-image" src="${escapeHTML(c.image)}" alt="${escapeHTML(c.name)}" loading="lazy" onerror="this.remove()">` : '';
+  }
+  const content = document.getElementById('conceptoSheetContent');
+  if (content) content.innerHTML = sanitizeHTML(c.content || '');
+
+  const backBtn = document.getElementById('btnVolverConcepto');
+  if (backBtn) backBtn.onclick = () => navigateTo('sec-teoria');
+
+  navigateTo('sec-concepto-ficha');
 }
 
 function setupConceptSearch(){
