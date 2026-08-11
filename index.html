@@ -1540,18 +1540,34 @@
             importedCount++;
           }
           else if (modType === 'flashcard') {
-            const question = mod.querySelector('[data-field="question"]')?.textContent || '';
-            const answer = sanitizeHTML(mod.querySelector('[data-field="answer"]')?.innerHTML || '');
-            const topic = mod.getAttribute('data-topic');
-            const type = mod.getAttribute('data-type');
+  const question = mod.querySelector('[data-field="question"]')?.textContent || '';
+  const answer = sanitizeHTML(
+    mod.querySelector('[data-field="answer"]')?.innerHTML || ''
+  );
 
-            const newFc = { id, question, answer, topic, type };
-            const idx = AppState.flashcards.findIndex(f => f.id === id);
-            if (idx >= 0) AppState.flashcards[idx] = newFc;
-            else AppState.flashcards.push(newFc);
+  const topic = mod.getAttribute('data-topic');
+  const type = mod.getAttribute('data-type');
+  const pathogenId = mod.getAttribute('data-pathogen-id');
 
-            importedCount++;
-          }
+  const newFc = {
+    id,
+    question,
+    answer,
+    topic,
+    type,
+    pathogenId
+  };
+
+  const idx = AppState.flashcards.findIndex(f => f.id === id);
+
+  if (idx >= 0) {
+    AppState.flashcards[idx] = newFc;
+  } else {
+    AppState.flashcards.push(newFc);
+  }
+
+  importedCount++;
+}
         });
 
         saveToStorage();
