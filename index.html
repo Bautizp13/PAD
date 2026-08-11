@@ -356,6 +356,23 @@ input.btn, select.btn, textarea.btn{ cursor:text; }
 .empty-state .ee-icon{ font-size:2.2rem; margin-bottom:.6rem; }
 
 .hint-box{ background:var(--accent-light); border:1px solid var(--border-color); border-left:4px solid var(--accent-color); border-radius:var(--radius-md); padding:1rem 1.2rem; font-size:.88rem; margin-bottom:1.25rem; }
+
+/* GESTIÓN DE BIBLIOTECA */
+.manage-tabs{ display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.1rem; }
+.manage-tab{ padding:.5rem 1rem; border-radius:2rem; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-secondary); font-size:.85rem; font-weight:600; cursor:pointer; }
+.manage-tab.active{ background:var(--accent-color); color:#fff; border-color:var(--accent-color); }
+.manage-toolbar{ display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1.1rem; }
+.manage-toolbar input, .manage-toolbar select{ flex:1; min-width:180px; }
+.manage-list{ display:flex; flex-direction:column; gap:.6rem; }
+.manage-row{ display:flex; align-items:center; gap:1rem; padding:.85rem 1.1rem; border:1px solid var(--border-color); border-radius:var(--radius-md); background:var(--bg-secondary); }
+.manage-row-main{ flex:1; min-width:0; }
+.manage-row-title{ font-weight:700; font-size:.95rem; color:var(--text-primary); }
+.manage-row-meta{ font-size:.78rem; color:var(--text-secondary); margin-top:.2rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+.manage-row-meta .badge-type{ font-size:.65rem; }
+.manage-chip{ background:var(--accent-light); color:var(--accent-color); border-radius:1rem; padding:.1rem .55rem; font-size:.72rem; font-weight:600; }
+.manage-del-btn{ flex-shrink:0; background:#fdeceb; color:#b91c1c; border:1px solid #f3b7b0; border-radius:var(--radius-md); padding:.5rem .75rem; font-size:.85rem; font-weight:700; cursor:pointer; }
+.manage-del-btn:hover{ background:#fbdcda; }
+.manage-empty-hint{ color:var(--text-secondary); font-size:.85rem; padding:1rem 0; }
 textarea.code-input{
   width:100%; border-radius:var(--radius-md); border:1px solid var(--border-color); padding:1rem;
   font-family:var(--font-mono); font-size:.82rem; background:var(--bg-tertiary); color:var(--text-primary); resize:vertical;
@@ -429,6 +446,7 @@ textarea.code-input{
 
       <div class="nav-section-label">Herramientas</div>
       <div class="nav-item" data-target="sec-materiales"><span class="nav-icon">📥</span><span class="nav-text">Agregar contenido</span></div>
+      <div class="nav-item" data-target="sec-gestionar"><span class="nav-icon">🗂️</span><span class="nav-text">Gestionar biblioteca</span></div>
       <div class="nav-item" data-target="sec-configuracion"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></div>
     </nav>
     <div class="sidebar-footer">
@@ -642,6 +660,30 @@ textarea.code-input{
             </label>
             <button class="btn danger" id="btnClearLibrary">Restablecer biblioteca</button>
           </div>
+        </div>
+      </section>
+
+      <!-- GESTIONAR BIBLIOTECA -->
+      <section id="sec-gestionar" class="section-view">
+        <div class="eyebrow">Herramientas</div>
+        <h1 class="page-title">Gestionar biblioteca</h1>
+        <div class="gold-rule"></div>
+        <p class="hint-box">Acá podés revisar todo lo que se cargó (temas, patógenos, conceptos y flashcards) y <strong>borrar</strong> lo que se haya agregado mal, esté repetido o ya no quieras tener. Los cambios se guardan automáticamente y se reflejan en toda la app.</p>
+
+        <div class="manage-tabs" id="manageTabs">
+          <button class="manage-tab active" data-manage-tab="topics">📚 Temas</button>
+          <button class="manage-tab" data-manage-tab="pathogens">🔬 Patógenos</button>
+          <button class="manage-tab" data-manage-tab="concepts">📖 Conceptos</button>
+          <button class="manage-tab" data-manage-tab="flashcards">🎴 Flashcards</button>
+        </div>
+
+        <div class="manage-toolbar">
+          <input type="text" id="manageSearchInput" class="btn" placeholder="Buscar por nombre…">
+          <select id="manageTopicFilter" class="btn"><option value="ALL">Todos los temas</option></select>
+        </div>
+
+        <div class="sheet-view">
+          <div class="manage-list" id="manageListContainer"></div>
         </div>
       </section>
 
@@ -1616,6 +1658,193 @@ function setupModuleImporter(){
 }
 
 /* ==========================================================================
+   13B. GESTIÓN DE BIBLIOTECA (borrar temas / patógenos / conceptos / flashcards)
+   ========================================================================== */
+const ManageState = { tab: 'topics', search: '', topic: 'ALL' };
+
+function setupManagement(){
+  document.getElementById('manageTabs')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.manage-tab');
+    if (!btn) return;
+    ManageState.tab = btn.getAttribute('data-manage-tab');
+    document.querySelectorAll('.manage-tab').forEach(t => t.classList.toggle('active', t === btn));
+    populateManageTopicFilter();
+    renderManage();
+  });
+
+  document.getElementById('manageSearchInput')?.addEventListener('input', (e) => {
+    ManageState.search = e.target.value;
+    renderManage();
+  });
+
+  document.getElementById('manageTopicFilter')?.addEventListener('change', (e) => {
+    ManageState.topic = e.target.value;
+    renderManage();
+  });
+}
+
+function populateManageTopicFilter(){
+  const select = document.getElementById('manageTopicFilter');
+  if (!select) return;
+  const current = select.value || 'ALL';
+  select.innerHTML = '<option value="ALL">Todos los temas</option>' +
+    AppState.topics.map(t => `<option value="${escapeHTML(t.name)}">${escapeHTML(t.name)}</option>`).join('');
+  select.value = AppState.topics.some(t => t.name === current) ? current : 'ALL';
+  ManageState.topic = select.value;
+}
+
+function manageCountsForTopic(name){
+  return {
+    pathogens: AppState.pathogens.filter(p => p.topic === name).length,
+    concepts: AppState.concepts.filter(c => c.topic === name).length,
+    flashcards: AppState.flashcards.filter(f => f.topic === name).length
+  };
+}
+
+function renderManage(){
+  const container = document.getElementById('manageListContainer');
+  if (!container) return;
+  const term = normalizeText(ManageState.search);
+
+  if (ManageState.tab === 'topics'){
+    let items = AppState.topics;
+    if (term) items = items.filter(t => normalizeText([t.name, t.description].join(' ')).includes(term));
+    if (!items.length){ container.innerHTML = manageEmpty('📚', 'No hay temas que coincidan.'); return; }
+
+    container.innerHTML = items.map(t => {
+      const c = manageCountsForTopic(t.name);
+      const total = c.pathogens + c.concepts + c.flashcards;
+      return `
+        <div class="manage-row">
+          <div class="manage-row-main">
+            <div class="manage-row-title">${escapeHTML(t.name)}</div>
+            <div class="manage-row-meta">
+              <span class="manage-chip">${c.pathogens} patógeno(s)</span>
+              <span class="manage-chip">${c.concepts} concepto(s)</span>
+              <span class="manage-chip">${c.flashcards} flashcard(s)</span>
+            </div>
+          </div>
+          <button class="manage-del-btn" onclick="deleteTopicManaged('${escapeHTML(t.name).replace(/'/g,"\\'")}', ${total})">🗑 Eliminar</button>
+        </div>`;
+    }).join('');
+    return;
+  }
+
+  if (ManageState.tab === 'pathogens'){
+    let items = AppState.pathogens;
+    if (ManageState.topic !== 'ALL') items = items.filter(p => p.topic === ManageState.topic);
+    if (term) items = items.filter(p => normalizeText([p.name, p.keywords, p.topic].join(' ')).includes(term));
+    if (!items.length){ container.innerHTML = manageEmpty('🔬', 'No hay patógenos que coincidan.'); return; }
+
+    container.innerHTML = items.map(p => `
+      <div class="manage-row">
+        <div class="manage-row-main">
+          <div class="manage-row-title">${getTypeIcon(p.type)} ${escapeHTML(p.name)}</div>
+          <div class="manage-row-meta">
+            <span class="badge-type ${getTypeBadgeClass(p.type)}">${getTypeLabel(p.type)}</span>
+            <span>${escapeHTML(p.topic || 'Sin tema')}</span>
+          </div>
+        </div>
+        <button class="manage-del-btn" onclick="deletePathogenManaged('${p.id}')">🗑 Eliminar</button>
+      </div>`).join('');
+    return;
+  }
+
+  if (ManageState.tab === 'concepts'){
+    let items = AppState.concepts;
+    if (ManageState.topic !== 'ALL') items = items.filter(c => c.topic === ManageState.topic);
+    if (term) items = items.filter(c => normalizeText([c.name, c.keywords, c.topic].join(' ')).includes(term));
+    if (!items.length){ container.innerHTML = manageEmpty('📖', 'No hay conceptos que coincidan.'); return; }
+
+    container.innerHTML = items.map(c => `
+      <div class="manage-row">
+        <div class="manage-row-main">
+          <div class="manage-row-title">📖 ${escapeHTML(c.name)}</div>
+          <div class="manage-row-meta"><span>${escapeHTML(c.topic || 'Sin tema')}</span></div>
+        </div>
+        <button class="manage-del-btn" onclick="deleteConceptManaged('${c.id}')">🗑 Eliminar</button>
+      </div>`).join('');
+    return;
+  }
+
+  if (ManageState.tab === 'flashcards'){
+    let items = AppState.flashcards;
+    if (ManageState.topic !== 'ALL') items = items.filter(f => f.topic === ManageState.topic);
+    if (term) items = items.filter(f => normalizeText([f.question, f.answer, f.topic].join(' ')).includes(term));
+    if (!items.length){ container.innerHTML = manageEmpty('🎴', 'No hay flashcards que coincidan.'); return; }
+
+    container.innerHTML = items.map(f => `
+      <div class="manage-row">
+        <div class="manage-row-main">
+          <div class="manage-row-title">🎴 ${escapeHTML(f.question)}</div>
+          <div class="manage-row-meta"><span>${escapeHTML(f.topic || 'Sin tema')}</span></div>
+        </div>
+        <button class="manage-del-btn" onclick="deleteFlashcardManaged('${f.id}')">🗑 Eliminar</button>
+      </div>`).join('');
+    return;
+  }
+}
+
+function manageEmpty(icon, text){
+  return `<div class="manage-empty-hint">${icon} ${escapeHTML(text)}</div>`;
+}
+
+async function afterManageChange(){
+  await saveToStorage();
+  refreshAllViews();
+  populateManageTopicFilter();
+  renderManage();
+}
+
+async function deleteTopicManaged(name, total){
+  let cascade = false;
+  if (total > 0){
+    const ok = confirm(`El tema "${name}" tiene ${total} elemento(s) asociados (patógenos + conceptos + flashcards).\n\nAceptar = eliminar el tema Y esos ${total} elemento(s).\nCancelar = eliminar solo el tema y dejar esos elementos sin tema asignado.`);
+    cascade = ok;
+  } else {
+    if (!confirm(`¿Eliminar el tema "${name}"?`)) return;
+  }
+
+  AppState.topics = AppState.topics.filter(t => t.name !== name);
+
+  if (cascade){
+    AppState.pathogens = AppState.pathogens.filter(p => p.topic !== name);
+    AppState.concepts = AppState.concepts.filter(c => c.topic !== name);
+    AppState.flashcards = AppState.flashcards.filter(f => f.topic !== name);
+  } else {
+    AppState.pathogens.forEach(p => { if (p.topic === name) p.topic = ''; });
+    AppState.concepts.forEach(c => { if (c.topic === name) c.topic = ''; });
+    AppState.flashcards.forEach(f => { if (f.topic === name) f.topic = ''; });
+  }
+
+  await afterManageChange();
+}
+
+async function deletePathogenManaged(id){
+  const item = AppState.pathogens.find(p => p.id === id);
+  if (!item) return;
+  if (!confirm(`¿Eliminar el patógeno "${item.name}"? Esta acción no se puede deshacer.`)) return;
+  AppState.pathogens = AppState.pathogens.filter(p => p.id !== id);
+  await afterManageChange();
+}
+
+async function deleteConceptManaged(id){
+  const item = AppState.concepts.find(c => c.id === id);
+  if (!item) return;
+  if (!confirm(`¿Eliminar el concepto "${item.name}"? Esta acción no se puede deshacer.`)) return;
+  AppState.concepts = AppState.concepts.filter(c => c.id !== id);
+  await afterManageChange();
+}
+
+async function deleteFlashcardManaged(id){
+  const item = AppState.flashcards.find(f => f.id === id);
+  if (!item) return;
+  if (!confirm(`¿Eliminar la flashcard "${item.question}"? Esta acción no se puede deshacer.`)) return;
+  AppState.flashcards = AppState.flashcards.filter(f => f.id !== id);
+  await afterManageChange();
+}
+
+/* ==========================================================================
    14. ACTUALIZAR TODA LA INTERFAZ
    ========================================================================== */
 function refreshAllViews(){
@@ -1640,7 +1869,10 @@ async function initApp(){
   setupFlashcards();
   setupGlobalSearch();
   setupModuleImporter();
+  setupManagement();
   refreshAllViews();
+  populateManageTopicFilter();
+  renderManage();
   navigateTo('sec-inicio');
   console.log('PAD Bautista Zárate iniciado correctamente. Almacenamiento en la nube:', hasCloudStorage);
 }
