@@ -1,1 +1,1393 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light" data-font-size="medium">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microbiología IA - Plataforma de Estudio</title>
+  <style>
+    /* ==========================================
+       VARIABLES Y ESTILOS BASE (CSS ACCESIBLE)
+       ========================================== */
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-sidebar: #0f172a;
+      --text-sidebar: #f1f5f9;
+      --text-sidebar-muted: #94a3b8;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      
+      --type-bacteria-bg: #dbeafe;
+      --type-bacteria-txt: #1e40af;
+      --type-bacteria-border: #3b82f6;
 
+      --type-virus-bg: #fef3c7;
+      --type-virus-txt: #92400e;
+      --type-virus-border: #f59e0b;
+
+      --type-hongos-bg: #dcfce7;
+      --type-hongos-txt: #166534;
+      --type-hongos-border: #22c55e;
+
+      --type-parasitos-bg: #f3e8ff;
+      --type-parasitos-txt: #6b21a8;
+      --type-parasitos-border: #a855f7;
+
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-size-base: 16px;
+      
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --radius-lg: 0.5rem;
+      --radius-xl: 0.75rem;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-sidebar: #020617;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+
+      --type-bacteria-bg: #1e3a8a;
+      --type-bacteria-txt: #93c5fd;
+
+      --type-virus-bg: #78350f;
+      --type-virus-txt: #fde68a;
+
+      --type-hongos-bg: #14532d;
+      --type-hongos-txt: #86efac;
+
+      --type-parasitos-bg: #581c87;
+      --type-parasitos-txt: #e9d5ff;
+    }
+
+    [data-theme="high-contrast"] {
+      --bg-primary: #000000;
+      --bg-secondary: #000000;
+      --bg-sidebar: #000000;
+      --text-sidebar: #ffffff;
+      --text-primary: #ffff00;
+      --text-secondary: #ffffff;
+      --border-color: #ffffff;
+      --accent-color: #ffff00;
+      --accent-hover: #00ffff;
+
+      --type-bacteria-bg: #000000;
+      --type-bacteria-txt: #ffff00;
+      --type-bacteria-border: #ffffff;
+
+      --type-virus-bg: #000000;
+      --type-virus-txt: #ffff00;
+      --type-virus-border: #ffffff;
+
+      --type-hongos-bg: #000000;
+      --type-hongos-txt: #ffff00;
+      --type-hongos-border: #ffffff;
+
+      --type-parasitos-bg: #000000;
+      --type-parasitos-txt: #ffff00;
+      --type-parasitos-border: #ffffff;
+    }
+
+    [data-font-size="small"] { --font-size-base: 14px; }
+    [data-font-size="medium"] { --font-size-base: 16px; }
+    [data-font-size="large"] { --font-size-base: 18px; }
+    [data-font-size="xlarge"] { --font-size-base: 20px; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-main);
+      font-size: var(--font-size-base);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Layout General */
+    #sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      color: var(--text-sidebar);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      transition: transform 0.3s ease, width 0.3s ease;
+    }
+
+    #sidebar.collapsed {
+      width: 80px;
+    }
+
+    #sidebar.collapsed .nav-text, 
+    #sidebar.collapsed .brand-title {
+      display: none;
+    }
+
+    .sidebar-header {
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      color: #38bdf8;
+    }
+
+    .toggle-sidebar-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sidebar);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0;
+      overflow-y: auto;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      color: var(--text-sidebar-muted);
+      text-decoration: none;
+      cursor: pointer;
+      gap: 0.75rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .nav-item.active {
+      border-left: 4px solid var(--accent-color);
+    }
+
+    .nav-icon {
+      font-size: 1.2rem;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    /* Contenido Principal */
+    #main-wrapper {
+      flex: 1;
+      margin-left: 260px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      transition: margin-left 0.3s ease;
+    }
+
+    #sidebar.collapsed + #main-wrapper {
+      margin-left: 80px;
+    }
+
+    .top-header {
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .global-search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+    }
+
+    .global-search-input {
+      width: 100%;
+      padding: 0.6rem 1rem 0.6rem 2.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 2rem;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .search-icon-inside {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+
+    .content-container {
+      padding: 2rem;
+      flex: 1;
+    }
+
+    .section-view {
+      display: none;
+    }
+
+    .section-view.active {
+      display: block;
+    }
+
+    /* Componentes Generales UI */
+    h1, h2, h3, h4 {
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg-primary);
+    }
+
+    .stat-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-lbl {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Filtros y Buscador de Patógenos */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+      background-color: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-color);
+    }
+
+    .filter-btn-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn:hover {
+      background-color: var(--border-color);
+    }
+
+    .btn.active {
+      background-color: var(--accent-color);
+      color: #ffffff;
+      border-color: var(--accent-color);
+    }
+
+    /* Tarjetas de Patógenos */
+    .grid-pathogens {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .pathogen-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      margin-bottom: 0.75rem;
+      width: fit-content;
+    }
+
+    .type-bacteria { background-color: var(--type-bacteria-bg); color: var(--type-bacteria-txt); border-color: var(--type-bacteria-border); }
+    .type-virus { background-color: var(--type-virus-bg); color: var(--type-virus-txt); border-color: var(--type-virus-border); }
+    .type-hongos { background-color: var(--type-hongos-bg); color: var(--type-hongos-txt); border-color: var(--type-hongos-border); }
+    .type-parasitos { background-color: var(--type-parasitos-bg); color: var(--type-parasitos-txt); border-color: var(--type-parasitos-border); }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-style: italic;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-topic {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .card-feature {
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      flex: 1;
+    }
+
+    /* Ficha Individual */
+    .sheet-view {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .sheet-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sheet-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .sheet-tab {
+      padding: 0.5rem 1rem;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .sheet-tab.active {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+    }
+
+    .sheet-section {
+      display: none;
+      line-height: 1.7;
+    }
+
+    .sheet-section.active {
+      display: block;
+    }
+
+    .absent-info {
+      color: var(--text-secondary);
+      font-style: italic;
+      background-color: var(--bg-primary);
+      padding: 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--border-color);
+    }
+
+    /* Flashcards */
+    .flashcard-container {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .flashcard {
+      background-color: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      min-height: 250px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .flashcard-answer {
+      display: none;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .flashcard-answer.visible {
+      display: block;
+    }
+
+    .difficulty-btns {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .btn-easy { background-color: #dcfce7; color: #15803d; border-color: #86efac; }
+    .btn-medium { background-color: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .btn-hard { background-color: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+    /* Estilos de Modulos Ocultos (Contenedores) */
+    .data-repository {
+      display: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+      #sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      #main-wrapper {
+        margin-left: 0 !important;
+      }
+      .mobile-menu-btn {
+        display: block !important;
+      }
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    /* Diagrama/Esquema visual básico */
+    .scheme-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    .scheme-step {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-lg);
+      font-weight: bold;
+    }
+    .scheme-arrow {
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA LATERAL -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <span class="brand-title">MICROBIOLOGÍA IA</span>
+      <button class="toggle-sidebar-btn" id="toggleSidebar" aria-label="Contraer Barra Lateral">📑</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-target="sec-inicio">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Inicio</span>
+      </div>
+      <div class="nav-item" data-target="sec-temas">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Temas</span>
+      </div>
+      <div class="nav-item" data-target="sec-patogenos">
+        <span class="nav-icon">🔬</span>
+        <span class="nav-text">Patógenos</span>
+      </div>
+      <div class="nav-item" data-target="sec-teoria">
+        <span class="nav-icon">📖</span>
+        <span class="nav-text">Teoría</span>
+      </div>
+      <div class="nav-item" data-target="sec-flashcards">
+        <span class="nav-icon">🎴</span>
+        <span class="nav-text">Flashcards</span>
+      </div>
+      <div class="nav-item" data-target="sec-repaso">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Repaso</span>
+      </div>
+      <div class="nav-item" data-target="sec-materiales">
+        <span class="nav-icon">📥</span>
+        <span class="nav-text">Mis Materiales</span>
+      </div>
+      <div class="nav-item" data-target="sec-configuracion">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div id="main-wrapper">
+    <!-- Header Superior -->
+    <header class="top-header">
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <div class="global-search-container">
+        <span class="search-icon-inside">🔍</span>
+        <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Buscador global (patógenos, teoría, flashcards)...">
+      </div>
+    </header>
+
+    <!-- Área de Contenido -->
+    <main class="content-container">
+
+      <!-- VISTA: BUSCADOR GLOBAL (RESULTADOS) -->
+      <section id="sec-search-results" class="section-view">
+        <h1 class="page-title">Resultados de Búsqueda</h1>
+        <div id="searchResultsContainer"></div>
+      </section>
+
+      <!-- VISTA: INICIO -->
+      <section id="sec-inicio" class="section-view active">
+        <h1 class="page-title">Visión General de la Biblioteca</h1>
+        <div class="grid-stats">
+          <div class="stat-card">
+            <div class="stat-icon">🧬</div>
+            <div>
+              <div class="stat-val" id="st-total">0</div>
+              <div class="stat-lbl">Patógenos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🧫</div>
+            <div>
+              <div class="stat-val" id="st-bacterias">0</div>
+              <div class="stat-lbl">Bacterias</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🦠</div>
+            <div>
+              <div class="stat-val" id="st-virus">0</div>
+              <div class="stat-lbl">Virus</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🍄</div>
+            <div>
+              <div class="stat-val" id="st-hongos">0</div>
+              <div class="stat-lbl">Hongos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🪱</div>
+            <div>
+              <div class="stat-val" id="st-parasitos">0</div>
+              <div class="stat-lbl">Parásitos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💡</div>
+            <div>
+              <div class="stat-val" id="st-conceptos">0</div>
+              <div class="stat-lbl">Conceptos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎴</div>
+            <div>
+              <div class="stat-val" id="st-flashcards">0</div>
+              <div class="stat-lbl">Flashcards</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA: TEMAS -->
+      <section id="sec-temas" class="section-view">
+        <h1 class="page-title">Índice Temático Jerárquico</h1>
+        <div id="temasTreeContainer"></div>
+      </section>
+
+      <!-- VISTA: PATÓGENOS -->
+      <section id="sec-patogenos" class="section-view">
+        <h1 class="page-title">Base de Datos de Microorganismos</h1>
+        
+        <div class="controls-bar">
+          <input type="text" id="pathogenSearchInput" class="btn" style="flex:1; min-width:200px;" placeholder="Buscar microorganismo o metadato...">
+          <div class="filter-btn-group" id="pathogenFilterGroup">
+            <button class="btn active" data-filter="ALL">[Todos]</button>
+            <button class="btn" data-filter="bacteria">🧫 Bacterias</button>
+            <button class="btn" data-filter="virus">🦠 Virus</button>
+            <button class="btn" data-filter="hongo">🍄 Hongos</button>
+            <button class="btn" data-filter="parasito">🪱 Parásitos</button>
+          </div>
+        </div>
+
+        <div class="grid-pathogens" id="pathogensGrid"></div>
+      </section>
+
+      <!-- VISTA: FICHA DETALLADA PATÓGENO -->
+      <section id="sec-ficha" class="section-view">
+        <button class="btn" id="backToPathogensBtn" style="margin-bottom: 1rem;">← Volver a Patógenos</button>
+        <div class="sheet-view">
+          <div class="sheet-header">
+            <span id="sheetBadge" class="badge-type"></span>
+            <h1 id="sheetTitle" style="margin-bottom:0.25rem;"></h1>
+            <div id="sheetSubtitles" style="color:var(--text-secondary); font-size:0.9rem;"></div>
+          </div>
+          <div class="sheet-nav" id="sheetNavTabs"></div>
+          <div id="sheetContentPanels"></div>
+        </div>
+      </section>
+
+      <!-- VISTA: TEORÍA -->
+      <section id="sec-teoria" class="section-view">
+        <h1 class="page-title">Biblioteca de Conceptos Teóricos</h1>
+        <div id="teoriaContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;"></div>
+      </section>
+
+      <!-- VISTA: FLASHCARDS -->
+      <section id="sec-flashcards" class="section-view">
+        <h1 class="page-title">Estudio por Flashcards</h1>
+        
+        <div class="controls-bar">
+          <select id="fcFilterTopic" class="btn"><option value="ALL">Todos los Temas</option></select>
+          <select id="fcFilterType" class="btn">
+            <option value="ALL">Todos los Tipos</option>
+            <option value="bacteria">Bacterias</option>
+            <option value="virus">Virus</option>
+            <option value="hongo">Hongos</option>
+            <option value="parasito">Parásitos</option>
+          </select>
+          <button class="btn active" id="btnStartFlashcards">Iniciar Flashcards</button>
+        </div>
+
+        <div class="flashcard-container" id="fcStudyArea" style="display:none;">
+          <div class="flashcard" id="currentFlashcard">
+            <div id="fcQuestion" style="font-size:1.2rem; font-weight:600;"></div>
+            <div id="fcAnswer" class="flashcard-answer"></div>
+          </div>
+          
+          <div style="text-align:center;" id="fcActionArea">
+            <button class="btn active" id="btnShowAnswer">Mostrar Respuesta</button>
+          </div>
+
+          <div class="difficulty-btns" id="fcDifficultyArea" style="display:none;">
+            <button class="btn btn-easy" data-diff="easy">Fácil</button>
+            <button class="btn btn-medium" data-diff="medium">Media</button>
+            <button class="btn btn-hard" data-diff="hard">Difícil</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA: REPASO -->
+      <section id="sec-repaso" class="section-view">
+        <h1 class="page-title">Sesión de Repaso Guiado</h1>
+        <div class="controls-bar" style="flex-direction:column; align-items:flex-start;">
+          <h3>Configurar Sesión</h3>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.5rem;">
+            <select id="revType" class="btn">
+              <option value="ALL">Cualquier tipo</option>
+              <option value="bacteria">Bacterias</option>
+              <option value="virus">Virus</option>
+            </select>
+            <select id="revCount" class="btn">
+              <option value="5">5 Preguntas</option>
+              <option value="10">10 Preguntas</option>
+            </select>
+            <button class="btn active" id="btnStartReview">Comenzar Repaso</button>
+          </div>
+        </div>
+        <div id="reviewArea"></div>
+      </section>
+
+      <!-- VISTA: MIS MATERIALES (IMPORTACIÓN MANUAL) -->
+      <section id="sec-materiales" class="section-view">
+        <h1 class="page-title">Agregar Contenido a la Biblioteca</h1>
+        <p style="margin-bottom:1rem;">Pega el código HTML generado por el <strong>Prompt Maestro de Contenido</strong> para incorporarlo dinámicamente a tu base de datos local.</p>
+        
+        <textarea id="importCodeInput" rows="10" style="width:100%; border-radius:var(--radius-lg); border:1px solid var(--border-color); padding:1rem; font-family:monospace; background:var(--bg-secondary); color:var(--text-primary);" placeholder="Pega aquí el HTML del módulo..."></textarea>
+        
+        <div style="margin-top:1rem; display:flex; gap:1rem;">
+          <button class="btn active" id="btnImportModule">Agregar a la Biblioteca</button>
+        </div>
+        <div id="importFeedback" style="margin-top:1rem; font-weight:600;"></div>
+      </section>
+
+      <!-- VISTA: CONFIGURACIÓN -->
+      <section id="sec-configuracion" class="section-view">
+        <h1 class="page-title">Configuración de la Plataforma</h1>
+        <div class="sheet-view">
+          <h3>Accesibilidad y Opciones Visuales</h3>
+          <br>
+          <div style="display:flex; flex-direction:column; gap:1rem; max-width:400px;">
+            <label><strong>Tamaño de Texto:</strong>
+              <select id="cfgFontSize" class="btn" style="width:100%; margin-top:0.5rem;">
+                <option value="small">Pequeño</option>
+                <option value="medium" selected>Mediano</option>
+                <option value="large">Grande</option>
+                <option value="xlarge">Extra Grande</option>
+              </select>
+            </label>
+
+            <label><strong>Tema Visual:</strong>
+              <select id="cfgTheme" class="btn" style="width:100%; margin-top:0.5rem;">
+                <option value="light">Modo Claro</option>
+                <option value="dark">Modo Oscuro</option>
+                <option value="high-contrast">Alto Contraste</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       REPOSITORIO DE DATOS (MÓDULOS HTML)
+       ========================================== -->
+  <div class="data-repository">
+    <div id="pathogens-container">
+      <!-- DEMO PATÓGENO 1 -->
+      <article class="pathogen-module" 
+               id="pathogen-neisseria-meningitidis"
+               data-name="Neisseria meningitidis"
+               data-type="bacteria"
+               data-topic="Infecciones Respiratorias y Meninges"
+               data-subtopic="Meningitis Bacteriana"
+               data-keywords="meningococo, gram negativa, cápsula, diplococo">
+        
+        <div class="mod-summary">
+          Diplococo Gram negativo, capsulado, causa principal de meningitis bacteriana y meningococemia.
+        </div>
+        
+        <div class="mod-section" data-sec="Morfología / Estructura">
+          <p>Diplococos Gram negativos agrupados en parejas (en forma de grano de café). Inmóviles, no esporulados.</p>
+        </div>
+
+        <div class="mod-section" data-sec="Virulencia">
+          <ul>
+            <li><strong>Cápsula polisacárida:</strong> Evita la fagocitosis.</li>
+            <li><strong>Pili:</strong> Adhesión al nasofaringe.</li>
+            <li><strong>Endotoxina (LOS):</strong> Causa shock séptico y purpura fulminans.</li>
+          </ul>
+        </div>
+
+        <div class="mod-section" data-sec="Diagnóstico">
+          <p>Ttinción de Gram en LCR, cultivo en ágar chocolate, PCR.</p>
+        </div>
+
+        <div class="mod-section" data-sec="Visual">
+          <div class="scheme-box">
+            <div class="scheme-step">Colonización Nasofaríngea</div>
+            <div class="scheme-arrow">↓</div>
+            <div class="scheme-step">Invasión del Torrente Sanguíneo</div>
+            <div class="scheme-arrow">↓</div>
+            <div class="scheme-step">Paso de Barrera Hematoencefálica</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- DEMO PATÓGENO 2 -->
+      <article class="pathogen-module" 
+               id="pathogen-influenza-virus"
+               data-name="Virus Influenza A"
+               data-type="virus"
+               data-topic="Infecciones Respiratorias"
+               data-subtopic="Gripe"
+               data-keywords="ARN, ortomixovirus, hemaglutinina, neuraminidasa">
+        
+        <div class="mod-summary">
+          Virus ARN pleomórfico causante de la gripe estacional y brotes pandémicos.
+        </div>
+
+        <div class="mod-section" data-sec="Morfología / Estructura">
+          <p>Virus envuelto con genoma de ARN monocatenario de polaridad negativa, segmentado en 8 partes.</p>
+        </div>
+
+        <div class="mod-section" data-sec="Características">
+          <p>Posee glicoproteínas de superficie: Hemaglutinina (HA) y Neuraminidasa (NA).</p>
+        </div>
+
+        <div class="mod-section" data-sec="Prevención">
+          <p>Vacunación anual debido a la deriva y cambio antigénico.</p>
+        </div>
+      </article>
+    </div>
+
+    <div id="concepts-container">
+      <!-- DEMO CONCEPTO 1 -->
+      <div class="concept-module" 
+           id="concept-capsula-bacteriana"
+           data-name="Cápsula Bacteriana"
+           data-topic="Estructura Bacteriana"
+           data-related-pathogens="pathogen-neisseria-meningitidis">
+        <p><strong>Definición:</strong> Capa periférica que rodea la pared celular de ciertas bacterias, generalmente compuesta de polisacáridos.</p>
+        <p><strong>Función principal:</strong> Factor de virulencia clave que protege contra la fagocitosis por células del sistema inmune.</p>
+      </div>
+    </div>
+
+    <div id="flashcards-container">
+      <!-- DEMO FLASHCARD 1 -->
+      <div class="flashcard-module"
+           id="fc-1"
+           data-pathogen="Neisseria meningitidis"
+           data-topic="Infecciones Respiratorias y Meninges"
+           data-type="bacteria">
+        <div class="fc-q">¿Cuál es el principal factor de virulencia de Neisseria meningitidis que evita la fagocitosis?</div>
+        <div class="fc-a">La cápsula polisacárida.</div>
+      </div>
+
+      <!-- DEMO FLASHCARD 2 -->
+      <div class="flashcard-module"
+           id="fc-2"
+           data-pathogen="Virus Influenza A"
+           data-topic="Infecciones Respiratorias"
+           data-type="virus">
+        <div class="fc-q">¿Cuántos segmentos de ARN posee el Virus Influenza A?</div>
+        <div class="fc-a">Posee 8 segmentos de ARN monocatenario.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ARQUITECTURA JAVASCRIPT
+       ========================================== -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      /* ------------------------------------------
+         1. PERSISTENCIA Y CONFIGURACIÓN GLOBAL
+         ------------------------------------------ */
+      const AppState = {
+        theme: localStorage.getItem('micro_theme') || 'light',
+        fontSize: localStorage.getItem('micro_fontSize') || 'medium',
+        flashcardsProgress: JSON.parse(localStorage.getItem('micro_fc_prog') || '{}'),
+      };
+
+      function applySettings() {
+        document.documentElement.setAttribute('data-theme', AppState.theme);
+        document.documentElement.setAttribute('data-font-size', AppState.fontSize);
+        document.getElementById('cfgTheme').value = AppState.theme;
+        document.getElementById('cfgFontSize').value = AppState.fontSize;
+      }
+
+      document.getElementById('cfgTheme').addEventListener('change', (e) => {
+        AppState.theme = e.target.value;
+        localStorage.setItem('micro_theme', AppState.theme);
+        applySettings();
+      });
+
+      document.getElementById('cfgFontSize').addEventListener('change', (e) => {
+        AppState.fontSize = e.target.value;
+        localStorage.setItem('micro_fontSize', AppState.fontSize);
+        applySettings();
+      });
+
+      applySettings();
+
+      /* ------------------------------------------
+         2. NAVEGACIÓN ENTRE SECCIONES
+         ------------------------------------------ */
+      const navItems = document.querySelectorAll('.nav-item');
+      const sections = document.querySelectorAll('.section-view');
+
+      function navigateTo(targetId) {
+        sections.forEach(sec => sec.classList.remove('active'));
+        navItems.forEach(item => item.classList.remove('active'));
+
+        const targetSec = document.getElementById(targetId);
+        if(targetSec) targetSec.classList.add('active');
+
+        const matchingNav = document.querySelector(`.nav-item[data-target="${targetId}"]`);
+        if(matchingNav) matchingNav.classList.add('active');
+
+        // Cerrar menú móvil al navegar
+        document.getElementById('sidebar').classList.remove('mobile-open');
+      }
+
+      navItems.forEach(item => {
+        item.addEventListener('click', () => {
+          navigateTo(item.getAttribute('data-target'));
+        });
+      });
+
+      document.getElementById('toggleSidebar').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+      });
+
+      document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('mobile-open');
+      });
+
+      /* ------------------------------------------
+         3. ESTADÍSTICAS DINÁMICAS
+         ------------------------------------------ */
+      function updateStats() {
+        const pathogens = document.querySelectorAll('.pathogen-module');
+        const concepts = document.querySelectorAll('.concept-module');
+        const flashcards = document.querySelectorAll('.flashcard-module');
+
+        let bac = 0, vir = 0, hon = 0, par = 0;
+
+        pathogens.forEach(p => {
+          const t = p.getAttribute('data-type');
+          if(t === 'bacteria') bac++;
+          else if(t === 'virus') vir++;
+          else if(t === 'hongo') hon++;
+          else if(t === 'parasito') par++;
+        });
+
+        document.getElementById('st-total').textContent = pathogens.length;
+        document.getElementById('st-bacterias').textContent = bac;
+        document.getElementById('st-virus').textContent = vir;
+        document.getElementById('st-hongos').textContent = hon;
+        document.getElementById('st-parasitos').textContent = par;
+        document.getElementById('st-conceptos').textContent = concepts.length;
+        document.getElementById('st-flashcards').textContent = flashcards.length;
+      }
+
+      /* ------------------------------------------
+         4. RENDERIZADO Y FILTRADO DE PATÓGENOS
+         ------------------------------------------ */
+      let currentFilterType = 'ALL';
+
+      function renderPathogensGrid() {
+        const grid = document.getElementById('pathogensGrid');
+        grid.innerHTML = '';
+
+        const searchVal = document.getElementById('pathogenSearchInput').value.toLowerCase();
+        const modules = document.querySelectorAll('.pathogen-module');
+
+        modules.forEach(mod => {
+          const type = mod.getAttribute('data-type');
+          const name = mod.getAttribute('data-name');
+          const topic = mod.getAttribute('data-topic');
+          const keywords = mod.getAttribute('data-keywords') || '';
+          const summary = mod.querySelector('.mod-summary')?.textContent || '';
+
+          // Filtro por Tipo y Búsqueda
+          const matchType = (currentFilterType === 'ALL' || type === currentFilterType);
+          const matchSearch = name.toLowerCase().includes(searchVal) || 
+                              topic.toLowerCase().includes(searchVal) || 
+                              keywords.toLowerCase().includes(searchVal) ||
+                              summary.toLowerCase().includes(searchVal);
+
+          if(matchType && matchSearch) {
+            const card = document.createElement('div');
+            card.className = 'pathogen-card';
+            
+            card.innerHTML = `
+              <div>
+                <span class="badge-type type-${type}">${type}</span>
+                <div class="card-title">${name}</div>
+                <div class="card-topic">${topic}</div>
+                <div class="card-feature">${summary}</div>
+              </div>
+              <button class="btn active" style="width:100%;" data-id="${mod.id}">VER FICHA</button>
+            `;
+
+            card.querySelector('button').addEventListener('click', () => openPathogenSheet(mod.id));
+            grid.appendChild(card);
+          }
+        });
+      }
+
+      document.getElementById('pathogenSearchInput').addEventListener('input', renderPathogensGrid);
+
+      document.getElementById('pathogenFilterGroup').addEventListener('click', (e) => {
+        if(e.target.tagName === 'BUTTON') {
+          document.querySelectorAll('#pathogenFilterGroup .btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          currentFilterType = e.target.getAttribute('data-filter');
+          renderPathogensGrid();
+        }
+      });
+
+      /* ------------------------------------------
+         5. FICHA DINÁMICA INDIVIDUAL DE PATÓGENO
+         ------------------------------------------ */
+      function openPathogenSheet(modId) {
+        const mod = document.getElementById(modId);
+        if(!mod) return;
+
+        const name = mod.getAttribute('data-name');
+        const type = mod.getAttribute('data-type');
+        const topic = mod.getAttribute('data-topic');
+        const subtopic = mod.getAttribute('data-subtopic');
+
+        document.getElementById('sheetBadge').textContent = type;
+        document.getElementById('sheetBadge').className = `badge-type type-${type}`;
+        document.getElementById('sheetTitle').textContent = name;
+        document.getElementById('sheetSubtitles').textContent = `${topic} ${subtopic ? '→ ' + subtopic : ''}`;
+
+        const navTabs = document.getElementById('sheetNavTabs');
+        const panelsContainer = document.getElementById('sheetContentPanels');
+        navTabs.innerHTML = '';
+        panelsContainer.innerHTML = '';
+
+        // Secciones disponibles en la Ficha
+        const sections = mod.querySelectorAll('.mod-section');
+        let isFirst = true;
+
+        sections.forEach((sec, idx) => {
+          const secTitle = sec.getAttribute('data-sec');
+          const tabBtn = document.createElement('button');
+          tabBtn.className = `sheet-tab ${isFirst ? 'active' : ''}`;
+          tabBtn.textContent = secTitle;
+          tabBtn.setAttribute('data-target-panel', `panel-${idx}`);
+
+          const panel = document.createElement('div');
+          panel.className = `sheet-section ${isFirst ? 'active' : ''}`;
+          panel.id = `panel-${idx}`;
+          panel.innerHTML = sec.innerHTML || '<div class="absent-info">No especificado en el material proporcionado.</div>';
+
+          tabBtn.addEventListener('click', () => {
+            document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sheet-section').forEach(s => s.classList.remove('active'));
+            tabBtn.classList.add('active');
+            panel.classList.add('active');
+          });
+
+          navTabs.appendChild(tabBtn);
+          panelsContainer.appendChild(panel);
+          isFirst = false;
+        });
+
+        navigateTo('sec-ficha');
+      }
+
+      document.getElementById('backToPathogensBtn').addEventListener('click', () => navigateTo('sec-patogenos'));
+
+      /* ------------------------------------------
+         6. RENDERIZADO DE TEMAS Y TEORÍA
+         ------------------------------------------ */
+      function renderTemasTree() {
+        const container = document.getElementById('temasTreeContainer');
+        container.innerHTML = '';
+
+        const topicsMap = {};
+        document.querySelectorAll('.pathogen-module').forEach(mod => {
+          const t = mod.getAttribute('data-topic') || 'General';
+          if(!topicsMap[t]) topicsMap[t] = [];
+          topicsMap[t].push(mod.getAttribute('data-name'));
+        });
+
+        for(let topic in topicsMap) {
+          const box = document.createElement('div');
+          box.className = 'sheet-view';
+          box.style.marginBottom = '1rem';
+          box.innerHTML = `
+            <h3>📖 ${topic}</h3>
+            <ul style="padding-left:1.5rem; margin-top:0.5rem;">
+              ${topicsMap[topic].map(p => `<li>${p}</li>`).join('')}
+            </ul>
+          `;
+          container.appendChild(box);
+        }
+      }
+
+      function renderTeoria() {
+        const container = document.getElementById('teoriaContainer');
+        container.innerHTML = '';
+
+        document.querySelectorAll('.concept-module').forEach(c => {
+          const name = c.getAttribute('data-name');
+          const topic = c.getAttribute('data-topic');
+          const card = document.createElement('div');
+          card.className = 'stat-card';
+          card.style.flexDirection = 'column';
+          card.style.alignItems = 'flex-start';
+          card.innerHTML = `
+            <h4>${name}</h4>
+            <span style="font-size:0.8rem; color:var(--text-secondary);">${topic}</span>
+            <div style="margin-top:0.5rem;">${c.innerHTML}</div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      /* ------------------------------------------
+         7. SISTEMA DE FLASHCARDS
+         ------------------------------------------ */
+      let fcQueue = [];
+      let fcIndex = 0;
+
+      function setupFlashcards() {
+        fcQueue = Array.from(document.querySelectorAll('.flashcard-module'));
+        if(fcQueue.length === 0) return;
+
+        fcIndex = 0;
+        document.getElementById('fcStudyArea').style.display = 'block';
+        showCurrentFlashcard();
+      }
+
+      function showCurrentFlashcard() {
+        if(fcIndex >= fcQueue.length) {
+          document.getElementById('currentFlashcard').innerHTML = '<div>¡Has completado todas las tarjetas seleccionadas! 🎉</div>';
+          document.getElementById('fcActionArea').style.display = 'none';
+          document.getElementById('fcDifficultyArea').style.display = 'none';
+          return;
+        }
+
+        const mod = fcQueue[fcIndex];
+        document.getElementById('fcQuestion').textContent = mod.querySelector('.fc-q').textContent;
+        document.getElementById('fcAnswer').textContent = mod.querySelector('.fc-a').textContent;
+        document.getElementById('fcAnswer').classList.remove('visible');
+
+        document.getElementById('fcActionArea').style.display = 'block';
+        document.getElementById('fcDifficultyArea').style.display = 'none';
+      }
+
+      document.getElementById('btnStartFlashcards').addEventListener('click', setupFlashcards);
+
+      document.getElementById('btnShowAnswer').addEventListener('click', () => {
+        document.getElementById('fcAnswer').classList.add('visible');
+        document.getElementById('fcActionArea').style.display = 'none';
+        document.getElementById('fcDifficultyArea').style.display = 'flex';
+      });
+
+      document.querySelectorAll('#fcDifficultyArea button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          fcIndex++;
+          showCurrentFlashcard();
+        });
+      });
+
+      /* ------------------------------------------
+         8. REPASO GUIADO
+         ------------------------------------------ */
+      document.getElementById('btnStartReview').addEventListener('click', () => {
+        const area = document.getElementById('reviewArea');
+        const total = parseInt(document.getElementById('revCount').value);
+        const mods = Array.from(document.querySelectorAll('.flashcard-module')).slice(0, total);
+
+        if(mods.length === 0) {
+          area.innerHTML = '<div class="absent-info">No hay flashcards suficientes para generar el repaso.</div>';
+          return;
+        }
+
+        area.innerHTML = `
+          <div class="sheet-view" style="margin-top:1rem;">
+            <h3>Repaso de ${mods.length} Conceptos</h3>
+            <ol style="padding-left:1.5rem; margin-top:1rem;">
+              ${mods.map(m => `
+                <li style="margin-bottom:1rem;">
+                  <strong>${m.querySelector('.fc-q').textContent}</strong>
+                  <p style="color:var(--text-secondary);">${m.querySelector('.fc-a').textContent}</p>
+                </li>
+              `).join('')}
+            </ol>
+          </div>
+        `;
+      });
+
+      /* ------------------------------------------
+         9. BUSCADOR GLOBAL
+         ------------------------------------------ */
+      document.getElementById('globalSearchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if(query.length < 2) {
+          if(document.getElementById('sec-search-results').classList.contains('active')) {
+            navigateTo('sec-inicio');
+          }
+          return;
+        }
+
+        navigateTo('sec-search-results');
+        const resContainer = document.getElementById('searchResultsContainer');
+        resContainer.innerHTML = '';
+
+        // Buscar en Patógenos
+        const pathMatches = [];
+        document.querySelectorAll('.pathogen-module').forEach(p => {
+          if(p.textContent.toLowerCase().includes(query)) {
+            pathMatches.push(p.getAttribute('data-name'));
+          }
+        });
+
+        // Buscar en Conceptos
+        const concMatches = [];
+        document.querySelectorAll('.concept-module').forEach(c => {
+          if(c.textContent.toLowerCase().includes(query)) {
+            concMatches.push(c.getAttribute('data-name'));
+          }
+        });
+
+        resContainer.innerHTML = `
+          <div class="sheet-view">
+            <h3>Resultados para "${query}"</h3>
+            <br>
+            <h4>Patógenos Encontrados (${pathMatches.length}):</h4>
+            <ul>${pathMatches.map(m => `<li>${m}</li>`).join('') || '<li>Ninguno</li>'}</ul>
+            <br>
+            <h4>Conceptos Encontrados (${concMatches.length}):</h4>
+            <ul>${concMatches.map(m => `<li>${m}</li>`).join('') || '<li>Ninguno</li>'}</ul>
+          </div>
+        `;
+      });
+
+      /* ------------------------------------------
+         10. IMPORTACIÓN MANUAL DE MÓDULOS HTML
+         ------------------------------------------ */
+      document.getElementById('btnImportModule').addEventListener('click', () => {
+        const rawCode = document.getElementById('importCodeInput').value;
+        const feedback = document.getElementById('importFeedback');
+        
+        if(!rawCode.trim()) {
+          feedback.style.color = '#dc2626';
+          feedback.textContent = 'El área de código está vacía.';
+          return;
+        }
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(rawCode, 'text/html');
+
+        const pathogen = doc.querySelector('.pathogen-module');
+        const concept = doc.querySelector('.concept-module');
+        const flashcard = doc.querySelector('.flashcard-module');
+
+        let imported = false;
+
+        if(pathogen) {
+          const id = pathogen.id;
+          if(!id) {
+            feedback.style.color = '#dc2626';
+            feedback.textContent = 'El módulo no contiene un ID válido.';
+            return;
+          }
+          const existing = document.getElementById(id);
+          if(existing) existing.remove(); // Reemplazar si existe duplicado
+          
+          document.getElementById('pathogens-container').appendChild(pathogen);
+          imported = true;
+        }
+
+        if(concept) {
+          document.getElementById('concepts-container').appendChild(concept);
+          imported = true;
+        }
+
+        if(flashcard) {
+          document.getElementById('flashcards-container').appendChild(flashcard);
+          imported = true;
+        }
+
+        if(imported) {
+          feedback.style.color = '#16a34a';
+          feedback.textContent = 'Módulo(s) incorporado(s) correctamente a la biblioteca.';
+          document.getElementById('importCodeInput').value = '';
+          refreshAllData();
+        } else {
+          feedback.style.color = '#dc2626';
+          feedback.textContent = 'El módulo no tiene una estructura reconocible (.pathogen-module, .concept-module, .flashcard-module).';
+        }
+      });
+
+      /* ------------------------------------------
+         11. INICIALIZACIÓN GENERAL
+         ------------------------------------------ */
+      function refreshAllData() {
+        updateStats();
+        renderPathogensGrid();
+        renderTemasTree();
+        renderTeoria();
+      }
+
+      refreshAllData();
+    });
+  </script>
+</body>
+</html>
