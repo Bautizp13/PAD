@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light" data-font-size="medium" data-compact="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Resumen PAD · Cuadros Sinópticos de Bacterias</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230a1a12'/%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='%2316a34a' stroke-width='3'/%3E%3Ctext x='50' y='64' font-size='34' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%234ade80'%3ECS%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+/* ==========================================================================
+   0. TIPOGRAFÍA Y VARIABLES DE TEMA (verde)
+   ========================================================================== */
+:root{
+  --font-display:'Lora', Georgia, serif;
+  --font-body:'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:'JetBrains Mono', ui-monospace, monospace;
+  --font-size-base:16px;
+
+  --navy-950:#0a1a12;
+  --navy-900:#0f2419;
+  --navy-800:#15331f;
+  --navy-700:#1c4228;
+  --gold-400:#4ade80;
+  --gold-500:#16a34a;
+  --gold-600:#15803d;
+
+  --red-500:#ef4444;
+  --red-600:#dc2626;
+  --red-700:#b91c1c;
+
+  --bg-primary:#f3faf5;
+  --bg-secondary:#ffffff;
+  --bg-tertiary:#eaf7ee;
+  --bg-sidebar:var(--navy-950);
+  --text-sidebar:#eafbf0;
+  --text-sidebar-muted:#96c2a5;
+  --text-primary:#122019;
+  --text-secondary:#52705d;
+  --border-color:#d7ecdc;
+  --border-strong:#a7d6b0;
+
+  --accent-color:#16a34a;
+  --accent-hover:#15803d;
+  --accent-light:#e6f7ea;
+  --focus-ring:#22c55e;
+
+  --gram-pos-bg:#f1e6fb; --gram-pos-txt:#6b2d99; --gram-pos-border:#b48ade;
+  --gram-neg-bg:#fde3ea; --gram-neg-txt:#a02363; --gram-neg-border:#e88bab;
+  --gram-aar-bg:#fdefd6; --gram-aar-txt:#8a5a10; --gram-aar-border:#e3ac4c;
+  --gram-var-bg:#e2f3e6; --gram-var-txt:#1f6b3a; --gram-var-border:#79c496;
+  --gram-na-bg:#eef0f2;  --gram-na-txt:#51606b;  --gram-na-border:#b7c2ca;
+
+  --tipo-virus-bg:#dff1fc; --tipo-virus-txt:#075985; --tipo-virus-border:#7dd3fc;
+  --tipo-parasito-bg:#fdf1d3; --tipo-parasito-txt:#8a5a10; --tipo-parasito-border:#f0c66b;
+  --tipo-hongo-bg:#fbe3f0; --tipo-hongo-txt:#9d174d; --tipo-hongo-border:#f4a8cf;
+
+  --star-color:#e0b34c;
+
+  --shadow-sm:0 1px 2px rgba(10,25,15,.08);
+  --shadow-md:0 6px 20px -4px rgba(10,25,15,.14), 0 2px 6px -2px rgba(10,25,15,.1);
+  --shadow-lg:0 16px 40px -12px rgba(10,25,15,.28);
+  --radius-md:.5rem;
+  --radius-lg:.75rem;
+  --radius-xl:1rem;
+  --spacing-card:1.35rem;
+}
+
+[data-theme="dark"]{
+  --bg-primary:#0c1611;
+  --bg-secondary:#12201a;
+  --bg-tertiary:#0f1a15;
+  --bg-sidebar:#060d09;
+  --text-primary:#ebf7ef;
+  --text-secondary:#9fc2ac;
+  --border-color:#233a2b;
+  --border-strong:#33553f30;
+  --accent-light:#1c3626;
+  --accent-color:#22c55e;
+  --accent-hover:#4ade80;
+}
+
+[data-font-size="small"]{ --font-size-base:14px; }
+[data-font-size="medium"]{ --font-size-base:16px; }
+[data-font-size="large"]{ --font-size-base:18px; }
+[data-font-size="xlarge"]{ --font-size-base:20.5px; }
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+  font-family:var(--font-body);
+  font-size:var(--font-size-base);
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  min-height:100vh;
+  line-height:1.55;
+}
+h1,h2,h3,h4{ font-family:var(--font-display); color:var(--text-primary); font-weight:700; letter-spacing:.2px; }
+::selection{ background:var(--gold-500); color:#fff; }
+a{ color:inherit; }
+button{ font-family:inherit; }
+:focus-visible{ outline:3px solid var(--focus-ring); outline-offset:2px; border-radius:4px; }
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+/* ==========================================================================
+   1. ESTRUCTURA GENERAL / LAYOUT
+   ========================================================================== */
+#appShell{ display:flex; min-height:100vh; }
+
+#sidebar{
+  width:264px; flex-shrink:0;
+  background:linear-gradient(180deg, var(--navy-950), var(--navy-900) 60%, var(--navy-950));
+  color:var(--text-sidebar);
+  display:flex; flex-direction:column;
+  position:fixed; top:0; bottom:0; left:0; z-index:200;
+  border-right:1px solid #ffffff14;
+  transition:transform .28s ease;
+}
+.sidebar-header{
+  padding:1.4rem 1.25rem 1.2rem;
+  display:flex; align-items:center; gap:.85rem;
+  border-bottom:1px solid #ffffff1c;
+}
+.seal{ width:42px; height:42px; flex-shrink:0; }
+.brand-copy{ line-height:1.15; }
+.brand-eyebrow{ font-family:var(--font-mono); font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-400); }
+.brand-title{ font-family:var(--font-display); font-weight:700; font-size:1.02rem; color:#f4f6fc; }
+
+.sidebar-nav{ flex:1; padding:1.1rem 0; overflow-y:auto; }
+.nav-section-label{
+  font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.14em;
+  color:var(--text-sidebar-muted); padding:1.1rem 1.4rem .4rem; font-weight:700;
+}
+.nav-section-label:first-child{ padding-top:.2rem; }
+.nav-item{
+  display:flex; align-items:center; gap:.85rem; padding:.68rem 1.4rem; margin:0 .6rem; border-radius:.55rem;
+  color:var(--text-sidebar-muted); text-decoration:none; cursor:pointer; border:1px solid transparent;
+  transition:background .15s, color .15s;
+}
+.nav-item:hover{ background:#16a34a1c; color:#fff; }
+.nav-item.active{ background:linear-gradient(90deg,#16a34a33,#22c55e14); color:#fff; border-color:#16a34a55; border-left:3px solid var(--gold-500); }
+.nav-item.active .nav-icon{ color:var(--gold-400); }
+.nav-icon{ font-size:1.1rem; min-width:22px; text-align:center; }
+.nav-count{ margin-left:auto; background:var(--gold-500); color:#fff; font-size:.68rem; font-weight:700; padding:.05rem .45rem; border-radius:1rem; font-family:var(--font-mono); }
+
+.sidebar-footer{ padding:1rem 1.4rem 1.3rem; border-top:1px solid #ffffff1c; }
+.sync-pill{ display:flex; align-items:center; gap:.5rem; font-size:.72rem; color:var(--text-sidebar-muted); font-family:var(--font-mono); }
+.sync-dot{ width:8px; height:8px; border-radius:50%; background:#4ade80; flex-shrink:0; }
+.sync-dot.local{ background:#e0b34c; }
+
+#sidebarOverlay{ display:none; position:fixed; inset:0; background:rgba(6,15,10,.55); z-index:190; }
+#sidebarOverlay.show{ display:block; }
+
+#main-wrapper{ flex:1; margin-left:264px; display:flex; flex-direction:column; min-width:0; }
+
+.top-header{
+  background:var(--bg-secondary); border-bottom:1px solid var(--border-color);
+  padding:.85rem 2rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;
+  position:sticky; top:0; z-index:90; box-shadow:var(--shadow-sm);
+}
+.mobile-menu-btn{
+  display:none; background:transparent; border:1px solid var(--border-color); border-radius:.5rem;
+  width:38px; height:38px; font-size:1.1rem; cursor:pointer; color:var(--text-primary); flex-shrink:0;
+}
+.global-search-container{ position:relative; flex:1; max-width:520px; }
+.global-search-input{
+  width:100%; padding:.62rem 1rem .62rem 2.6rem; border:1px solid var(--border-color); border-radius:2rem;
+  background:var(--bg-tertiary); color:var(--text-primary); font-size:.92rem;
+}
+.global-search-input:focus{ outline:2px solid var(--accent-color); background:var(--bg-secondary); }
+.search-icon-inside{ position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-secondary); }
+.header-status{ font-family:var(--font-mono); font-size:.72rem; color:var(--text-secondary); white-space:nowrap; }
+
+.content-container{ padding:2rem 2.25rem 3.5rem; flex:1; max-width:1280px; width:100%; margin:0 auto; }
+.section-view{ display:none; }
+.section-view.active{ display:block; animation:fadeIn .25s ease; }
+@keyframes fadeIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:none;} }
+
+.eyebrow{ font-family:var(--font-mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-600); font-weight:700; margin-bottom:.4rem; }
+.page-title{ font-size:1.85rem; margin-bottom:.35rem; }
+.page-subtitle{ color:var(--text-secondary); margin-bottom:1.75rem; max-width:64ch; }
+.gold-rule{ height:3px; width:64px; background:linear-gradient(90deg,var(--gold-500),var(--gold-500) 60%,transparent); margin:.6rem 0 1.75rem; border-radius:2px; }
+
+/* ==========================================================================
+   2. TARJETAS Y ESTADÍSTICAS
+   ========================================================================== */
+.grid-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1rem; margin-bottom:2.25rem; }
+.stat-card{
+  background:var(--bg-secondary); border:1px solid var(--border-color); border-top:3px solid var(--gold-500);
+  border-radius:var(--radius-lg); padding:var(--spacing-card); display:flex; align-items:center; gap:1rem;
+  box-shadow:var(--shadow-sm);
+}
+.stat-icon{ font-size:1.6rem; width:46px; height:46px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; background:var(--accent-light); flex-shrink:0; }
+.stat-val{ font-family:var(--font-display); font-size:1.55rem; font-weight:700; line-height:1; }
+.stat-lbl{ font-size:.74rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.06em; margin-top:.2rem; }
+
+.section-heading{ font-size:1.15rem; margin:0 0 1rem; display:flex; align-items:center; gap:.5rem; }
+.quick-actions{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.quick-btn{
+  background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.1rem;
+  display:flex; align-items:center; gap:.85rem; cursor:pointer; font-weight:600; box-shadow:var(--shadow-sm);
+  transition:transform .15s, box-shadow .15s, border-color .15s;
+}
+.quick-btn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:var(--gold-500); }
+.quick-btn .qi{ font-size:1.4rem; width:42px; height:42px; border-radius:50%; background:var(--accent-light); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+.grid-cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(268px,1fr)); gap:1.1rem; }
+.card-thumb{ width:100%; height:110px; object-fit:cover; display:block; }
+.topic-image{ width:100%; max-height:170px; object-fit:cover; border-radius:var(--radius-md); }
+
+.module-card{
+  position:relative; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-lg);
+  overflow:hidden; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform .15s, box-shadow .15s;
+  display:flex; flex-direction:column;
+}
+.module-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
+.card-ribbon{
+  font-family:var(--font-mono); font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  padding:.4rem .9rem; display:flex; justify-content:space-between; align-items:center;
+}
+.card-body{ padding:1.05rem 1.1rem 1.2rem; flex:1; display:flex; flex-direction:column; gap:.4rem; }
+.card-title{ font-family:var(--font-display); font-size:1.05rem; font-weight:700; font-style:italic; }
+.card-meta{ font-size:.75rem; color:var(--text-secondary); font-family:var(--font-mono); }
+.card-summary{ font-size:.87rem; color:var(--text-secondary); }
+.card-dotted{ border-top:1px dashed var(--border-strong); margin:.55rem 0 .2rem; }
+
+.badge-type{ font-size:.68rem; font-weight:700; padding:.18rem .55rem; border-radius:1rem; text-transform:uppercase; letter-spacing:.04em; }
+.badge-gram-positivo{ background:var(--gram-pos-bg); color:var(--gram-pos-txt); }
+.badge-gram-negativo{ background:var(--gram-neg-bg); color:var(--gram-neg-txt); }
+.badge-gram-acidoalcohol{ background:var(--gram-aar-bg); color:var(--gram-aar-txt); }
+.badge-gram-variable{ background:var(--gram-var-bg); color:var(--gram-var-txt); }
+.badge-gram-na{ background:var(--gram-na-bg); color:var(--gram-na-txt); }
+.card-ribbon.badge-gram-positivo{ background:var(--gram-pos-bg); color:var(--gram-pos-txt); }
+.card-ribbon.badge-gram-negativo{ background:var(--gram-neg-bg); color:var(--gram-neg-txt); }
+.card-ribbon.badge-gram-acidoalcohol{ background:var(--gram-aar-bg); color:var(--gram-aar-txt); }
+.card-ribbon.badge-gram-variable{ background:var(--gram-var-bg); color:var(--gram-var-txt); }
+.card-ribbon.badge-gram-na{ background:var(--gram-na-bg); color:var(--gram-na-txt); }
+.badge-tipo-virus{ background:var(--tipo-virus-bg); color:var(--tipo-virus-txt); }
+.badge-tipo-parasito{ background:var(--tipo-parasito-bg); color:var(--tipo-parasito-txt); }
+.badge-tipo-hongo{ background:var(--tipo-hongo-bg); color:var(--tipo-hongo-txt); }
+.card-ribbon.badge-tipo-virus{ background:var(--tipo-virus-bg); color:var(--tipo-virus-txt); }
+.card-ribbon.badge-tipo-parasito{ background:var(--tipo-parasito-bg); color:var(--tipo-parasito-txt); }
+.card-ribbon.badge-tipo-hongo{ background:var(--tipo-hongo-bg); color:var(--tipo-hongo-txt); }
+.demo-tag{ background:#fee2e2; color:#b91c1c; border:1px solid #f3b0b0; font-size:.62rem; font-weight:700; padding:.1rem .4rem; border-radius:.25rem; text-transform:uppercase; }
+.estado-tag{ font-size:.62rem; font-weight:700; padding:.1rem .4rem; border-radius:.25rem; text-transform:uppercase; }
+.estado-tag.sabido{ background:#dcfce7; color:#15803d; }
+.estado-tag.repasar{ background:#fee2e2; color:#b91c1c; }
+
+.fav-btn{
+  background:transparent; border:none; cursor:pointer; font-size:1.2rem; line-height:1; padding:.15rem .3rem;
+  color:var(--border-strong); flex-shrink:0;
+}
+.fav-btn.active{ color:var(--star-color); }
+.card-fav-btn{ position:absolute; top:.5rem; right:.5rem; z-index:2; background:#ffffffcc; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); }
+[data-theme="dark"] .card-fav-btn{ background:#0c1611cc; }
+
+/* ==========================================================================
+   3. CONTROLES / FORMULARIOS
+   ========================================================================== */
+.controls-bar{ display:flex; flex-wrap:wrap; gap:.7rem; margin-bottom:1.5rem; align-items:center; }
+.btn{
+  font-family:inherit; font-size:.86rem; padding:.55rem 1rem; border-radius:.5rem; border:1px solid var(--border-color);
+  background:var(--bg-secondary); color:var(--text-primary); cursor:pointer; transition:background .15s, border-color .15s, color .15s;
+}
+.btn:hover{ border-color:var(--gold-500); }
+.btn.active{ background:var(--accent-color); color:#fff; border-color:var(--accent-color); }
+.btn.gold{ background:var(--gold-500); color:#fff; border-color:var(--gold-500); font-weight:700; }
+.btn.danger{ background:#fdeceb; color:#b91c1c; border-color:#f3b7b0; }
+input.btn, select.btn, textarea.btn{ cursor:text; }
+
+/* ==========================================================================
+   4. FICHA / CUADRO SINÓPTICO
+   ========================================================================== */
+.sheet-view{ background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-xl); padding:1.75rem; box-shadow:var(--shadow-sm); }
+.sheet-header{ border-bottom:1px solid var(--border-color); padding-bottom:1rem; margin-bottom:1.25rem; }
+.sheet-sections-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.1rem; }
+.section-block{ background:var(--bg-tertiary); border:1px solid var(--border-color); border-left:4px solid var(--gold-500); border-radius:var(--radius-md); padding:1rem 1.1rem; }
+.section-block h4{ font-size:.82rem; text-transform:uppercase; letter-spacing:.05em; color:var(--gold-600); margin-bottom:.4rem; }
+.section-block-content{ font-size:.92rem; color:var(--text-primary); line-height:1.6; }
+.sheet-nav{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.1rem; flex-wrap:wrap; }
+.sheet-nav-group{ display:flex; align-items:center; gap:.6rem; }
+.sheet-nav-counter{ font-family:var(--font-mono); font-size:.8rem; color:var(--text-secondary); }
+
+/* ==========================================================================
+   5. MODO DESLIZANTE
+   ========================================================================== */
+.slide-stage{ display:flex; align-items:flex-start; gap:1rem; }
+.slide-arrow{
+  flex-shrink:0; width:48px; height:48px; border-radius:50%; border:1px solid var(--border-color);
+  background:var(--bg-secondary); font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow-sm); transition:background .15s, border-color .15s; margin-top:2rem;
+}
+.slide-arrow:hover{ border-color:var(--gold-500); background:var(--accent-light); }
+.slide-card-host{ flex:1; min-width:0; touch-action:pan-y; }
+.slide-counter{ text-align:center; font-family:var(--font-mono); font-size:.8rem; color:var(--text-secondary); margin-top:1.1rem; }
+@media (max-width:640px){ .slide-arrow{ width:38px; height:38px; font-size:1.1rem; margin-top:1rem; } }
+
+/* ==========================================================================
+   6. UTILIDADES / IMPORTADOR / GESTIÓN
+   ========================================================================== */
+.empty-state{ text-align:center; padding:3rem 1.5rem; color:var(--text-secondary); border:1px dashed var(--border-strong); border-radius:var(--radius-lg); background:var(--bg-tertiary); }
+.empty-state .ee-icon{ font-size:2.2rem; margin-bottom:.6rem; }
+.hint-box{ background:var(--accent-light); border:1px solid var(--border-color); border-left:4px solid var(--accent-color); border-radius:var(--radius-md); padding:1rem 1.2rem; font-size:.88rem; margin-bottom:1.25rem; }
+
+.manage-toolbar{ display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1.1rem; }
+.manage-toolbar input, .manage-toolbar select{ flex:1; min-width:180px; }
+.manage-list{ display:flex; flex-direction:column; gap:.6rem; }
+.manage-row{ display:flex; align-items:center; gap:1rem; padding:.85rem 1.1rem; border:1px solid var(--border-color); border-radius:var(--radius-md); background:var(--bg-secondary); }
+.manage-row-main{ flex:1; min-width:0; }
+.manage-row-title{ font-weight:700; font-size:.95rem; color:var(--text-primary); }
+.manage-row-meta{ font-size:.78rem; color:var(--text-secondary); margin-top:.2rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+.manage-row-meta .badge-type{ font-size:.65rem; }
+.manage-del-btn{ flex-shrink:0; background:#fdeceb; color:#b91c1c; border:1px solid #f3b7b0; border-radius:var(--radius-md); padding:.5rem .75rem; font-size:.85rem; font-weight:700; cursor:pointer; }
+.manage-del-btn:hover{ background:#fbdcda; }
+.manage-empty-hint{ color:var(--text-secondary); font-size:.85rem; padding:1rem 0; }
+
+textarea.code-input{
+  width:100%; border-radius:var(--radius-md); border:1px solid var(--border-color); padding:1rem;
+  font-family:var(--font-mono); font-size:.82rem; background:var(--bg-tertiary); color:var(--text-primary); resize:vertical;
+}
+#importFeedback{ margin-top:1rem; font-weight:600; font-size:.9rem; }
+.sync-status-card{ display:flex; gap:1rem; align-items:flex-start; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.1rem 1.3rem; margin-bottom:1.5rem; }
+.sync-status-card .ss-icon{ font-size:1.5rem; }
+
+/* ==========================================================================
+   8. COMPARAR
+   ========================================================================== */
+.compare-pick-list{ display:flex; flex-direction:column; gap:.5rem; max-height:420px; overflow-y:auto; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:.5rem; background:var(--bg-secondary); }
+.compare-pick-row{ display:flex; align-items:center; gap:.75rem; padding:.6rem .7rem; border-radius:var(--radius-md); cursor:pointer; }
+.compare-pick-row:hover{ background:var(--accent-light); }
+.compare-pick-row.checked{ background:var(--accent-light); border:1px solid var(--gold-500); }
+.compare-pick-row input{ width:17px; height:17px; flex-shrink:0; accent-color:var(--accent-color); }
+.compare-pick-title{ font-weight:600; font-size:.9rem; }
+.compare-pick-meta{ font-size:.75rem; color:var(--text-secondary); }
+.selected-chips{ display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0; }
+.chip{ display:flex; align-items:center; gap:.4rem; background:var(--accent-color); color:#fff; font-size:.8rem; font-weight:600; padding:.35rem .5rem .35rem .8rem; border-radius:2rem; }
+.chip button{ background:#ffffff33; border:none; color:#fff; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:.8rem; line-height:1; }
+.compare-wrap{ overflow-x:auto; border:1px solid var(--border-color); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); }
+table.compare-table{ border-collapse:collapse; width:100%; min-width:560px; background:var(--bg-secondary); }
+table.compare-table th, table.compare-table td{ border:1px solid var(--border-color); padding:.75rem .9rem; text-align:left; vertical-align:top; font-size:.87rem; }
+table.compare-table th{ background:var(--bg-tertiary); position:sticky; top:0; }
+table.compare-table td.compare-field-label, table.compare-table th.compare-field-label{
+  font-weight:700; font-family:var(--font-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--gold-600); background:var(--bg-tertiary); position:sticky; left:0; min-width:150px; z-index:1;
+}
+table.compare-table th.compare-col-head{ min-width:220px; }
+table.compare-table .compare-name{ font-family:var(--font-display); font-style:italic; font-weight:700; font-size:1rem; }
+table.compare-table .compare-empty-cell{ color:var(--text-secondary); }
+
+/* ==========================================================================
+   9. MODO ESTUDIO (flashcards)
+   ========================================================================== */
+.study-toolbar{ display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; margin-bottom:1.25rem; }
+.study-progress-bar{ height:8px; border-radius:4px; background:var(--bg-tertiary); overflow:hidden; margin-bottom:.4rem; }
+.study-progress-fill{ height:100%; background:linear-gradient(90deg,var(--gold-500),var(--gold-400)); transition:width .25s ease; }
+.study-progress-label{ font-size:.78rem; color:var(--text-secondary); font-family:var(--font-mono); display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+.study-card{ background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-xl); box-shadow:var(--shadow-md); padding:2rem; text-align:center; min-height:260px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; }
+.study-card-name{ font-family:var(--font-display); font-size:1.6rem; font-weight:700; font-style:italic; }
+.study-card-hint{ color:var(--text-secondary); font-size:.85rem; }
+.study-reveal .sheet-sections-grid{ text-align:left; margin-top:1.25rem; }
+.study-actions{ display:flex; justify-content:center; gap:.85rem; margin-top:1.5rem; flex-wrap:wrap; }
+.btn.study-know{ background:#dcfce7; color:#15803d; border-color:#86efac; font-weight:700; }
+.btn.study-review{ background:#fee2e2; color:#b91c1c; border-color:#f3b0b0; font-weight:700; }
+.study-summary{ text-align:center; padding:3rem 1.5rem; }
+.study-summary .ss-big{ font-size:2.4rem; margin-bottom:.5rem; }
+
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:6px; }
+
+/* ==========================================================================
+   7. RESPONSIVE
+   ========================================================================== */
+@media (max-width:960px){
+  #sidebar{ transform:translateX(-100%); width:280px; }
+  #sidebar.mobile-open{ transform:translateX(0); box-shadow:var(--shadow-lg); }
+  #main-wrapper{ margin-left:0 !important; }
+  .mobile-menu-btn{ display:flex; align-items:center; justify-content:center; }
+}
+@media (max-width:640px){
+  .top-header{ padding:.7rem 1rem; }
+  .content-container{ padding:1.25rem 1.1rem 3rem; }
+  .page-title{ font-size:1.5rem; }
+  .global-search-input{ font-size:.85rem; }
+  .header-status{ display:none; }
+  .grid-stats{ grid-template-columns:repeat(2,1fr); }
+  .grid-cards{ grid-template-columns:1fr; }
+  .sheet-view{ padding:1.2rem; }
+  .slide-stage{ flex-direction:column; }
+  .slide-arrow{ margin-top:0; }
+}
+
+.pdf-hide-btn {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+</style>
+</head>
+<body>
+
+<div id="appShell">
+  <div id="sidebarOverlay"></div>
+
+  <aside id="sidebar" aria-label="Navegación principal">
+    <div class="sidebar-header">
+      <svg class="seal" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="30" fill="none" stroke="#16a34a" stroke-width="2"/>
+        <circle cx="32" cy="32" r="25" fill="none" stroke="#4ade80" stroke-width="1"/>
+        <text x="32" y="39" text-anchor="middle" font-family="Lora, serif" font-size="15" font-weight="700" fill="#eafbf0">CS</text>
+      </svg>
+      <div class="brand-copy">
+        <div class="brand-eyebrow">Resumen PAD</div>
+        <div class="brand-title">Cuadros Sinópticos</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Catálogo</div>
+      <div class="nav-item active" data-target="sec-inicio"><span class="nav-icon">🏛️</span><span class="nav-text">Inicio</span></div>
+      <div class="nav-item" data-target="sec-bacterias"><span class="nav-icon">🧫</span><span class="nav-text">Microorganismos</span></div>
+      <div class="nav-item" data-target="sec-deslizar"><span class="nav-icon">👉</span><span class="nav-text">Deslizar</span></div>
+
+      <div class="nav-section-label">Estudiar</div>
+      <div class="nav-item" data-target="sec-estudiar"><span class="nav-icon">🎯</span><span class="nav-text">Modo estudio</span></div>
+      <div class="nav-item" data-target="sec-comparar"><span class="nav-icon">⚖️</span><span class="nav-text">Comparar</span><span class="nav-count" id="navCompareCount" style="display:none;"></span></div>
+      <div class="nav-item" data-target="sec-conceptos"><span class="nav-icon">📚</span><span class="nav-text">Conceptos</span></div>
+      <div class="nav-item" data-target="sec-examen"><span class="nav-icon">📝</span><span class="nav-text">Examen</span></div>
+
+      <div class="nav-section-label">Herramientas</div>
+      <div class="nav-item" data-target="sec-materiales"><span class="nav-icon">📥</span><span class="nav-text">Agregar contenido</span></div>
+      <div class="nav-item" data-target="sec-gestionar"><span class="nav-icon">🗂️</span><span class="nav-text">Gestionar</span></div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sync-pill"><span class="sync-dot" id="sidebarSyncDot"></span><span id="sidebarSyncText">Comprobando almacenamiento…</span></div>
+    </div>
+  </aside>
+
+  <div id="main-wrapper">
+    <header class="top-header">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menú">☰</button>
+      <div class="global-search-container">
+        <span class="search-icon-inside" aria-hidden="true">🔍</span>
+        <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Buscar bacterias por nombre… (Enter)" aria-label="Buscador">
+      </div>
+      <div class="header-status" id="headerSyncStatus">· · ·</div>
+    </header>
+
+    <main class="content-container">
+
+      <!-- INICIO -->
+      <section id="sec-inicio" class="section-view active">
+        <div class="eyebrow">Facultad de Microbiología · Cuadros sinópticos</div>
+        <h1 class="page-title">Cuadros sinópticos de bacterias</h1>
+        <p class="page-subtitle">Cada microorganismo en un solo cuadro: características, morfología, epidemiología, cómo infecta, dónde se sitúa, correlación clínica y más. Filtrá, buscá, compará o deslizá de uno a otro para repasar rápido.</p>
+
+        <div class="grid-stats">
+          <div class="stat-card"><div class="stat-icon">🧫</div><div><div class="stat-val" id="st-total">0</div><div class="stat-lbl">Cargados</div></div></div>
+          <div class="stat-card"><div class="stat-icon">📚</div><div><div class="stat-val" id="st-grupos">0</div><div class="stat-lbl">Grupos</div></div></div>
+          <div class="stat-card"><div class="stat-icon">⭐</div><div><div class="stat-val" id="st-favoritos">0</div><div class="stat-lbl">Favoritos</div></div></div>
+          <div class="stat-card"><div class="stat-icon">🔁</div><div><div class="stat-val" id="st-repasar">0</div><div class="stat-lbl">A repasar</div></div></div>
+        </div>
+
+        <h2 class="section-heading">Accesos rápidos</h2>
+        <div class="quick-actions">
+          <div class="quick-btn" onclick="navigateTo('sec-bacterias')"><span class="qi">🧫</span> Ver microorganismos</div>
+          <div class="quick-btn" onclick="navigateTo('sec-estudiar')"><span class="qi">🎯</span> Modo estudio</div>
+          <div class="quick-btn" onclick="navigateTo('sec-comparar')"><span class="qi">⚖️</span> Comparar</div>
+          <div class="quick-btn" onclick="navigateTo('sec-deslizar')"><span class="qi">👉</span> Modo deslizante</div>
+          <div class="quick-btn" onclick="navigateTo('sec-materiales')"><span class="qi">📥</span> Agregar contenido</div>
+          <div class="quick-btn" onclick="navigateTo('sec-gestionar')"><span class="qi">🗂️</span> Gestionar</div>
+        </div>
+
+        <div class="sync-status-card" id="homeSyncCard">
+          <div class="ss-icon">☁️</div>
+          <div>
+            <strong id="homeSyncTitle">Comprobando dónde se guarda tu biblioteca…</strong>
+            <div style="color:var(--text-secondary); font-size:.87rem; margin-top:.25rem;" id="homeSyncDetail"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GRID DE BACTERIAS -->
+      <section id="sec-bacterias" class="section-view">
+        <div class="eyebrow">Catálogo</div>
+        <h1 class="page-title">Microorganismos</h1>
+        <div class="gold-rule"></div>
+
+        <div class="manage-toolbar">
+          <input type="text" id="bacteriaSearchInput" class="btn" placeholder="Buscar por nombre o característica…">
+          <select id="bacteriaTipoFilter" class="btn">
+            <option value="ALL">Todos los tipos</option>
+            <option value="bacteria">🧫 Bacterias</option>
+            <option value="virus">🦠 Virus</option>
+            <option value="parasito">🪱 Parásitos</option>
+            <option value="hongo">🍄 Hongos</option>
+          </select>
+          <select id="bacteriaGroupFilter" class="btn"><option value="ALL">Todos los grupos</option></select>
+          <select id="bacteriaGramFilter" class="btn">
+            <option value="ALL">Todos los Gram</option>
+            <option>Gram positivo</option>
+            <option>Gram negativo</option>
+            <option>Ácido-alcohol resistente</option>
+            <option>Variable</option>
+            <option>No aplica</option>
+          </select>
+        </div>
+        <div class="controls-bar">
+          <button class="btn" id="bacteriaFavToggle">⭐ Solo favoritos</button>
+          <button class="btn" id="bacteriaReviewToggle">🔁 Solo a repasar</button>
+        </div>
+
+        <div id="bacteriaGrid" class="grid-cards"></div>
+      </section>
+
+      <!-- FICHA / CUADRO SINÓPTICO DE UNA BACTERIA -->
+      <section id="sec-bacteria-ficha" class="section-view">
+        <div class="sheet-nav">
+          <button class="btn" onclick="navigateTo('sec-bacterias')">← Volver a bacterias</button>
+          <div class="sheet-nav-group" id="bacteriaSheetNav" style="display:none;">
+            <button class="btn" onclick="bacteriaSheetPrev()">‹ Anterior</button>
+            <span class="sheet-nav-counter" id="bsCounter"></span>
+            <button class="btn" onclick="bacteriaSheetNext()">Siguiente ›</button>
+          </div>
+        </div>
+        <div class="sheet-view" id="bacteriaSheetHost"></div>
+      </section>
+
+      <!-- MODO DESLIZANTE -->
+      <section id="sec-deslizar" class="section-view">
+        <div class="eyebrow">Modo repaso</div>
+        <h1 class="page-title">Deslizar bacterias</h1>
+        <div class="gold-rule"></div>
+        <p class="page-subtitle">Deslizá (con el mouse, el dedo o las flechas del teclado ← →) para pasar de una bacteria a la siguiente. Usá los filtros para armar tu propia secuencia de repaso.</p>
+
+        <div class="manage-toolbar">
+          <input type="text" id="slideSearchInput" class="btn" placeholder="Buscar por nombre…">
+          <select id="slideTipoFilter" class="btn">
+            <option value="ALL">Todos los tipos</option>
+            <option value="bacteria">🧫 Bacterias</option>
+            <option value="virus">🦠 Virus</option>
+            <option value="parasito">🪱 Parásitos</option>
+            <option value="hongo">🍄 Hongos</option>
+          </select>
+          <select id="slideGroupFilter" class="btn"><option value="ALL">Todos los grupos</option></select>
+          <select id="slideGramFilter" class="btn">
+            <option value="ALL">Todos los Gram</option>
+            <option>Gram positivo</option>
+            <option>Gram negativo</option>
+            <option>Ácido-alcohol resistente</option>
+            <option>Variable</option>
+            <option>No aplica</option>
+          </select>
+        </div>
+
+        <div id="slideEmptyHost"></div>
+        <div class="slide-stage" id="slideStage">
+          <button class="slide-arrow" id="slidePrevBtn" aria-label="Anterior">‹</button>
+          <div class="slide-card-host" id="slideCardHost"></div>
+          <button class="slide-arrow" id="slideNextBtn" aria-label="Siguiente">›</button>
+        </div>
+        <div class="slide-counter" id="slideCounter"></div>
+      </section>
+
+      <!-- MODO ESTUDIO -->
+      <section id="sec-estudiar" class="section-view">
+        <div class="eyebrow">Modo repaso</div>
+        <h1 class="page-title">Modo estudio</h1>
+        <div class="gold-rule"></div>
+        <p class="page-subtitle">Mirá el nombre, pensá el cuadro completo antes de revelarlo, y marcá si ya lo sabés o si necesitás repasarlo. Tu progreso se guarda por microorganismo.</p>
+
+        <div class="study-toolbar">
+          <select id="studyTipoFilter" class="btn">
+            <option value="ALL">Todos los tipos</option>
+            <option value="bacteria">🧫 Bacterias</option>
+            <option value="virus">🦠 Virus</option>
+            <option value="parasito">🪱 Parásitos</option>
+            <option value="hongo">🍄 Hongos</option>
+          </select>
+          <select id="studyGroupFilter" class="btn"><option value="ALL">Todos los grupos</option></select>
+          <select id="studyScopeFilter" class="btn">
+            <option value="ALL">Todo el catálogo</option>
+            <option value="FAV">⭐ Solo favoritos</option>
+            <option value="REVIEW">🔁 Solo a repasar</option>
+            <option value="NEW">🆕 Solo nuevos (sin marcar)</option>
+          </select>
+          <button class="btn" id="studyShuffleBtn">🔀 Barajar</button>
+          <button class="btn danger" id="studyResetBtn">♻️ Reiniciar progreso (filtro actual)</button>
+        </div>
+
+        <div id="studyHost"></div>
+      </section>
+
+      <!-- COMPARAR -->
+      <section id="sec-comparar" class="section-view">
+        <div class="eyebrow">Modo repaso</div>
+        <h1 class="page-title">Comparar microorganismos</h1>
+        <div class="gold-rule"></div>
+        <p class="page-subtitle">Elegí los microorganismos que quieras para verlos lado a lado, campo por campo. Ideal para diferenciar bacterias parecidas antes de un parcial. ¡Ahora podés comparar sin límites!</p>
+
+        <div class="manage-toolbar">
+          <input type="text" id="compareSearchInput" class="btn" placeholder="Buscar por nombre…">
+          <select id="compareTipoFilter" class="btn">
+            <option value="ALL">Todos los tipos</option>
+            <option value="bacteria">🧫 Bacterias</option>
+            <option value="virus">🦠 Virus</option>
+            <option value="parasito">🪱 Parásitos</option>
+            <option value="hongo">🍄 Hongos</option>
+          </select>
+          <select id="compareGroupFilter" class="btn"><option value="ALL">Todos los grupos</option></select>
+        </div>
+
+        <div class="compare-pick-list" id="comparePickList"></div>
+
+        <div class="selected-chips" id="compareChips"></div>
+        <div class="controls-bar">
+          <button class="btn" id="compareClearBtn">Limpiar selección</button>
+          <button class="btn gold" id="compareDownloadPdfBtn" style="display:none;">📄 Descargar como PDF</button>
+        </div>
+
+        <div id="compareTableHost"></div>
+      </section>
+
+      <!-- AGREGAR CONTENIDO -->
+      <section id="sec-materiales" class="section-view">
+        <div class="eyebrow">Herramientas</div>
+        <h1 class="page-title">Agregar contenido</h1>
+        <div class="gold-rule"></div>
+        <p class="hint-box">Pegá acá el código HTML de uno o varios microorganismos generado con el <strong>prompt maestro</strong> (cada uno es un bloque <code>&lt;article data-module-type="..."&gt;</code>, con <code>data-module-type</code> igual a <code>bacteria</code>, <code>virus</code>, <code>parasito</code> o <code>hongo</code>). Podés pegar varios bloques juntos para importar varios de una sola vez. Si uno ya existe (mismo nombre y tipo), se actualiza en vez de duplicarse.</p>
+
+        <textarea id="importCodeInput" class="btn code-input" rows="10" placeholder='<article data-module-type="bacteria" data-name="Streptococcus pyogenes" data-grupo="Cocos Gram positivos" data-gram="Gram positivo">
+  <div data-field="caracteristicas">...</div>
+  <div data-field="morfologia">...</div>
+  ...
+</article>'></textarea>
+        <div class="controls-bar" style="margin-top:1rem;">
+          <button class="btn gold" id="btnImportModule">📥 Importar módulo(s)</button>
+        </div>
+        <div id="importFeedback"></div>
+
+        <h2 class="section-heading" style="margin-top:2.5rem;">Copia de seguridad</h2>
+        <div class="sync-status-card" id="toolsSyncCard">
+          <div class="ss-icon">☁️</div>
+          <div><strong id="toolsSyncTitle">Comprobando…</strong><div style="color:var(--text-secondary); font-size:.87rem; margin-top:.25rem;" id="toolsSyncDetail"></div></div>
+        </div>
+        <div class="controls-bar">
+          <button class="btn" id="btnExportLibrary">⬇️ Descargar copia de seguridad (.json)</button>
+          <label class="btn" style="cursor:pointer;">⬆️ Subir copia de seguridad (.json)
+            <input type="file" id="libraryJsonInput" accept="application/json" style="display:none;">
+          </label>
+          <button class="btn danger" id="btnClearLibrary">♻️ Restablecer a datos de demostración</button>
+        </div>
+      </section>
+
+      <!-- GESTIONAR -->
+      <section id="sec-gestionar" class="section-view">
+        <div class="eyebrow">Herramientas</div>
+        <h1 class="page-title">Gestionar bacterias</h1>
+        <div class="gold-rule"></div>
+        <p class="hint-box">Revisá todas las bacterias cargadas y borrá las que se hayan agregado mal, estén repetidas o ya no quieras tener.</p>
+        <div class="manage-toolbar">
+          <input type="text" id="manageSearchInput" class="btn" placeholder="Buscar por nombre…">
+        </div>
+        <div class="sheet-view"><div class="manage-list" id="manageBacteriaList"></div></div>
+      </section>
+
+      <!-- CONCEPTOS / TEORÍA -->
+      <section id="sec-conceptos" class="section-view">
+        <div class="eyebrow">Teoría y Fundamentos</div>
+        <h1 class="page-title">Conceptos de Microbiología</h1>
+        <div class="gold-rule"></div>
+        <p class="page-subtitle">Conocimientos teóricos fundamentales sobre bacterias, virus y otros microorganismos patógenos.</p>
+
+        <div class="manage-toolbar">
+          <input type="text" id="conceptSearchInput" class="btn" placeholder="Buscar conceptos…">
+          <select id="conceptCategoryFilter" class="btn">
+            <option value="ALL">Todos los temas</option>
+            <option value="bacteria">🧫 Bacterias</option>
+            <option value="virus">🦠 Virus</option>
+            <option value="general">📚 General</option>
+          </select>
+        </div>
+
+        <div id="conceptHost" class="sheet-view"></div>
+      </section>
+
+      <!-- EXAMEN -->
+      <section id="sec-examen" class="section-view">
+        <div class="eyebrow">Evaluación</div>
+        <h1 class="page-title">Examen de Microbiología</h1>
+        <div class="gold-rule"></div>
+        <p class="page-subtitle">Preguntas de opción múltiple a nivel universitario. ¡Pon a prueba tus conocimientos!</p>
+
+        <div class="study-toolbar">
+          <select id="examDifficultyFilter" class="btn">
+            <option value="ALL">Todas las dificultades</option>
+            <option value="básico">🟢 Básico</option>
+            <option value="intermedio">🟡 Intermedio</option>
+            <option value="avanzado">🔴 Avanzado</option>
+          </select>
+          <select id="examCategoryFilter" class="btn">
+            <option value="ALL">Todos los temas</option>
+            <option value="bacteria">🧫 Bacterias</option>
+            <option value="virus">🦠 Virus</option>
+            <option value="general">📚 General</option>
+          </select>
+          <button class="btn danger" id="examResetBtn">♻️ Reiniciar examen</button>
+        </div>
+
+        <div id="examHost"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   0. ESTADO GLOBAL Y DATOS DE DEMOSTRACIÓN
+   ========================================================================== */
+const AppState = { bacteria: [] };
+
+const FIELD_DEFS = [
+  { key:'caracteristicas', label:'Características generales', icon:'🧬' },
+  { key:'morfologia',      label:'Morfología',                 icon:'🔎' },
+  { key:'epidemiologia',   label:'Epidemiología',               icon:'🌍' },
+  { key:'habitat',         label:'Dónde se sitúa / Reservorio', icon:'📍' },
+  { key:'infeccion',       label:'Cómo infecta',                icon:'⚡' },
+  { key:'virulencia',      label:'Factores de virulencia',      icon:'🛡️' },
+  { key:'clinica',         label:'Correlación clínica',         icon:'🩺' },
+  { key:'diagnostico',     label:'Diagnóstico',                 icon:'🧪' },
+  { key:'tratamiento',     label:'Tratamiento',                 icon:'💊' },
+  { key:'prevencion',      label:'Prevención',                  icon:'✅' }
+];
+
+const TIPO_DEFS = {
+  bacteria: { label:'Bacteria', icon:'🧫' },
+  virus:    { label:'Virus',    icon:'🦠' },
+  parasito: { label:'Parásito', icon:'🪱' },
+  hongo:    { label:'Hongo',    icon:'🍄' }
+};
+function tipoIcon(t){ return (TIPO_DEFS[t] || TIPO_DEFS.bacteria).icon; }
+function tipoLabel(t){ return (TIPO_DEFS[t] || TIPO_DEFS.bacteria).label; }
+
+function ribbonBadge(b){
+  if ((b.tipo || 'bacteria') === 'bacteria'){
+    return { cls: gramBadgeClass(b.gram), text: (b.gram || 'Sin clasificar') };
+  }
+  const map = { virus:'badge-tipo-virus', parasito:'badge-tipo-parasito', hongo:'badge-tipo-hongo' };
+  return { cls: map[b.tipo] || 'badge-gram-na', text: tipoLabel(b.tipo) };
+}
+
+const DEMO_BACTERIA = [
+  {
+    id:'demo-staph-aureus', name:'Staphylococcus aureus', grupo:'Cocos Gram positivos', gram:'Gram positivo', tipo:'bacteria', favorito:false, estado:'nuevo', image:'', isDemo:true,
+    caracteristicas:'Coco Gram positivo, catalasa positivo, coagulasa positivo (lo diferencia de otros estafilococos). Se agrupa en racimos. [DATO DE DEMOSTRACIÓN]',
+    morfologia:'Cocos de 0,5–1,5 µm dispuestos en racimos irregulares tipo "racimo de uvas".',
+    epidemiologia:'Coloniza fosas nasales y piel de una parte importante de la población sana; principal causa de infecciones de piel y de infecciones asociadas a catéteres.',
+    habitat:'Fosas nasales anteriores, piel y mucosas como parte de la microbiota habitual.',
+    infeccion:'Ingresa por rupturas de la piel o mucosas; se disemina localmente o por vía hematógena.',
+    virulencia:'Coagulasa, proteína A, toxinas (alfa-hemolisina, leucocidina de Panton-Valentine), formación de biofilm.',
+    clinica:'Forúnculos, celulitis, bacteriemia, endocarditis, neumonía necrotizante, síndrome de shock tóxico.',
+    diagnostico:'Cultivo con prueba de coagulasa positiva; tinción Gram muestra cocos Gram positivos en racimos.',
+    tratamiento:'Betalactámicos resistentes a penicilinasa; vancomicina en cepas resistentes a meticilina (SAMR).',
+    prevencion:'Higiene de manos, cuidado de heridas, descolonización nasal en portadores de alto riesgo.'
+  },
+  {
+    id:'demo-ecoli', name:'Escherichia coli', grupo:'Enterobacterias', gram:'Gram negativo', tipo:'bacteria', favorito:false, estado:'nuevo', image:'', isDemo:true,
+    caracteristicas:'Bacilo Gram negativo, anaerobio facultativo, oxidasa negativo, fermentador de lactosa. [DATO DE DEMOSTRACIÓN]',
+    morfologia:'Bacilo corto Gram negativo, móvil por flagelos peritricos en la mayoría de las cepas.',
+    epidemiologia:'Miembro habitual de la microbiota intestinal; algunas cepas son patógenas y causan brotes por alimentos o agua contaminada.',
+    habitat:'Tracto gastrointestinal de humanos y animales.',
+    infeccion:'Vía fecal-oral (cepas diarreogénicas) o por ascenso desde la microbiota propia hacia el tracto urinario.',
+    virulencia:'Fimbrias P y tipo 1, toxina Shiga (en cepas STEC), hemolisina, cápsula.',
+    clinica:'Infección urinaria (principal causa), diarrea (según el patotipo), sepsis neonatal, meningitis.',
+    diagnostico:'Urocultivo o coprocultivo; identificación bioquímica y serotipificación en cepas diarreogénicas.',
+    tratamiento:'Según antibiograma; hidratación en cuadros diarreicos, evitando antibióticos en STEC por riesgo de síndrome urémico hemolítico.',
+    prevencion:'Higiene alimentaria, cocción adecuada de carnes, potabilización del agua.'
+  },
+  {
+    id:'demo-tb', name:'Mycobacterium tuberculosis', grupo:'Micobacterias', gram:'Ácido-alcohol resistente', tipo:'bacteria', favorito:false, estado:'nuevo', image:'', isDemo:true,
+    caracteristicas:'Bacilo ácido-alcohol resistente (BAAR), de crecimiento lento, pared rica en ácidos micólicos. [DATO DE DEMOSTRACIÓN]',
+    morfologia:'Bacilo delgado, ligeramente curvo, no se tiñe bien con Gram; se visualiza con tinción de Ziehl-Neelsen.',
+    epidemiologia:'Una de las principales causas de mortalidad por enfermedad infecciosa a nivel mundial; mayor incidencia en contextos de hacinamiento y bajos recursos.',
+    habitat:'Reservorio humano; se localiza principalmente en el pulmón.',
+    infeccion:'Transmisión por vía aérea mediante gotas respiratorias (núcleos de Wells) de una persona con enfermedad activa.',
+    virulencia:'Pared celular rica en lípidos que le permite sobrevivir dentro de macrófagos; factor cuerda.',
+    clinica:'Tos crónica, fiebre, sudoración nocturna, pérdida de peso; puede diseminarse a otros órganos (tuberculosis extrapulmonar).',
+    diagnostico:'Baciloscopía (Ziehl-Neelsen), cultivo en medios especiales, técnicas moleculares, radiografía de tórax.',
+    tratamiento:'Esquema combinado prolongado con varios antibióticos (por ejemplo isoniazida, rifampicina, entre otros) para evitar resistencia.',
+    prevencion:'Vacuna BCG, diagnóstico y tratamiento temprano de casos activos, ventilación adecuada en espacios cerrados.'
+  }
+];
+
+/* ==========================================================================
+   1. UTILIDADES
+   ========================================================================== */
+function cloneData(data){ return JSON.parse(JSON.stringify(data)); }
+
+function sanitizeHTML(html){
+  const template = document.createElement('template');
+  template.innerHTML = html || '';
+  template.content.querySelectorAll('script, iframe, object, embed, link, meta, style').forEach(el => el.remove());
+  template.content.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(attr => {
+      const name = attr.name.toLowerCase();
+      const value = (attr.value || '').trim().toLowerCase();
+      if (name.startsWith('on') || value.startsWith('javascript:') || value.startsWith('data:text/html')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return template.innerHTML;
+}
+
+function escapeHTML(value){
+  const div = document.createElement('div');
+  div.textContent = value ?? '';
+  return div.innerHTML;
+}
+
+function normalizeText(value){
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+
+function slugify(value){
+  return normalizeText(value).replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+function truncateText(html, max){
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  const text = (div.textContent || '').trim();
+  return text.length > max ? text.slice(0, max).trim() + '…' : text;
+}
+
+function gramBadgeClass(gram){
+  const map = {
+    'Gram positivo':'badge-gram-positivo',
+    'Gram negativo':'badge-gram-negativo',
+    'Ácido-alcohol resistente':'badge-gram-acidoalcohol',
+    'Variable':'badge-gram-variable',
+    'No aplica':'badge-gram-na'
+  };
+  return map[gram] || 'badge-gram-na';
+}
+
+function setText(id, value){ const el = document.getElementById(id); if (el) el.textContent = value; }
+
+function emptyState(icon, title, detail){
+  return `<div class="empty-state"><div class="ee-icon">${icon}</div><strong>${escapeHTML(title)}</strong><p style="margin-top:.4rem;">${escapeHTML(detail)}</p></div>`;
+}
+
+function manageEmpty(icon, text){
+  return `<div class="manage-empty-hint">${icon} ${escapeHTML(text)}</div>`;
+}
+
+/* ==========================================================================
+   2. ALMACENAMIENTO — NUBE (window.storage) + LOCAL (localStorage)
+   ========================================================================== */
+const STORAGE_KEY = 'resumen_pad_cuadros_sinopticos_bacterias';
+const hasCloudStorage = (typeof window.storage !== 'undefined' && window.storage !== null);
+
+function serializeLibrary(){ return JSON.stringify({ bacteria: AppState.bacteria }); }
+
+function normalizeItem(item){
+  return {
+    ...item,
+    tipo: item.tipo || 'bacteria',
+    favorito: !!item.favorito,
+    estado: item.estado || 'nuevo'
+  };
+}
+
+function applyLibraryPayload(payload){
+  if (!payload) return false;
+  AppState.bacteria = (Array.isArray(payload.bacteria) ? payload.bacteria : []).map(normalizeItem);
+  return true;
+}
+
+async function saveToStorage(){
+  const raw = serializeLibrary();
+  try{ localStorage.setItem(STORAGE_KEY, raw); }catch(e){ console.warn('No se pudo guardar en localStorage:', e); }
+
+  if (hasCloudStorage){
+    try{ await window.storage.set(STORAGE_KEY, raw, false); setSyncState('cloud'); }
+    catch(e){ console.warn('No se pudo guardar en la nube:', e); setSyncState('local'); }
+  } else {
+    setSyncState('local-only');
+  }
+}
+
+async function loadFromStorage(){
+  let payload = null;
+
+  if (hasCloudStorage){
+    try{
+      const result = await window.storage.get(STORAGE_KEY, false);
+      if (result && result.value) payload = JSON.parse(result.value);
+    }catch(e){ console.warn('No se pudo leer la nube:', e); }
+  }
+
+  if (!payload){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) payload = JSON.parse(raw);
+    }catch(e){ console.warn('No se pudo leer localStorage:', e); }
+  }
+
+  if (payload){
+    applyLibraryPayload(payload);
+  } else {
+    applyLibraryPayload({ bacteria: cloneData(DEMO_BACTERIA) });
+    await saveToStorage();
+  }
+
+  setSyncState(hasCloudStorage ? 'cloud' : 'local-only');
+}
+
+function setSyncState(state){
+  const dot = document.getElementById('sidebarSyncDot');
+  const text = document.getElementById('sidebarSyncText');
+  const header = document.getElementById('headerSyncStatus');
+  const homeTitle = document.getElementById('homeSyncTitle');
+  const homeDetail = document.getElementById('homeSyncDetail');
+  const toolsTitle = document.getElementById('toolsSyncTitle');
+  const toolsDetail = document.getElementById('toolsSyncDetail');
+
+  let label, detail, dotClass, headerLabel;
+  if (state === 'cloud'){
+    label = 'Sincronizado en la nube';
+    headerLabel = '☁️ En la nube';
+    detail = 'Tu catálogo se guarda en tu cuenta y estará disponible desde cualquier dispositivo en este mismo espacio de trabajo.';
+    dotClass = '';
+  } else {
+    label = 'Guardado solo en este dispositivo';
+    headerLabel = '💾 Solo este dispositivo';
+    detail = 'Este archivo se está usando fuera de un espacio con almacenamiento en la nube. Usá "Descargar copia de seguridad" en Agregar contenido para llevar tu catálogo a otro dispositivo.';
+    dotClass = 'local';
+  }
+
+  if (dot) dot.className = 'sync-dot ' + dotClass;
+  if (text) text.textContent = label;
+  if (header) header.textContent = headerLabel;
+  if (homeTitle) homeTitle.textContent = label;
+  if (homeDetail) homeDetail.textContent = detail;
+  if (toolsTitle) toolsTitle.textContent = label;
+  if (toolsDetail) toolsDetail.textContent = detail;
+  const homeIcon = document.querySelector('#homeSyncCard .ss-icon');
+  const toolsIcon = document.querySelector('#toolsSyncCard .ss-icon');
+  if (homeIcon) homeIcon.textContent = state === 'cloud' ? '☁️' : '💾';
+  if (toolsIcon) toolsIcon.textContent = state === 'cloud' ? '☁️' : '💾';
+}
+
+/* ==========================================================================
+   3. EXPORTAR / IMPORTAR COPIA DE SEGURIDAD (.json)
+   ========================================================================== */
+function exportLibraryJSON(){
+  const data = { bacteria: AppState.bacteria, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cuadros-sinopticos-bacterias.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importLibraryJSON(file){
+  const feedback = document.getElementById('importFeedback');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const payload = JSON.parse(e.target.result);
+      const merge = confirm('¿Deseas FUSIONAR este archivo con tu catálogo actual? Aceptar = fusionar (recomendado). Cancelar = reemplazar todo.');
+      const arr = Array.isArray(payload.bacteria) ? payload.bacteria : [];
+      if (merge){
+        arr.forEach(item => {
+          const idx = AppState.bacteria.findIndex(b => b.id === item.id);
+          if (idx >= 0) AppState.bacteria[idx] = item; else AppState.bacteria.push(item);
+        });
+      } else {
+        AppState.bacteria = arr;
+      }
+      await saveToStorage();
+      refreshAllViews();
+      if (feedback){ feedback.style.color = '#15803d'; feedback.textContent = 'Copia de seguridad importada correctamente.'; }
+    }catch(err){
+      if (feedback){ feedback.style.color = '#b91c1c'; feedback.textContent = 'Error al leer el archivo: ' + err.message; }
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ==========================================================================
+   4. NAVEGACIÓN
+   ========================================================================== */
+function navigateTo(targetId){
+  document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active'));
+  const target = document.getElementById(targetId);
+  if (target) target.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.getAttribute('data-target') === targetId);
+  });
+
+  window.scrollTo(0,0);
+  closeMobileSidebar();
+}
+
+function setupNavigation(){
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => navigateTo(item.getAttribute('data-target')));
+  });
+
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (mobileBtn && sidebar && overlay){
+    mobileBtn.addEventListener('click', () => {
+      sidebar.classList.add('mobile-open');
+      overlay.classList.add('show');
+    });
+    overlay.addEventListener('click', closeMobileSidebar);
+  }
+}
+function closeMobileSidebar(){
+  document.getElementById('sidebar')?.classList.remove('mobile-open');
+  document.getElementById('sidebarOverlay')?.classList.remove('show');
+}
+
+function setupHeaderSearch(){
+  const input = document.getElementById('globalSearchInput');
+  input?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    FilterState.search = input.value;
+    const gridSearch = document.getElementById('bacteriaSearchInput');
+    if (gridSearch) gridSearch.value = input.value;
+    navigateTo('sec-bacterias');
+    renderBacterias();
+  });
+}
+
+/* ==========================================================================
+   5. ESTADÍSTICAS
+   ========================================================================== */
+function updateStats(){
+  setText('st-total', AppState.bacteria.length);
+  const grupos = new Set(AppState.bacteria.map(b => b.grupo).filter(Boolean));
+  setText('st-grupos', grupos.size);
+  setText('st-favoritos', AppState.bacteria.filter(b => b.favorito).length);
+  setText('st-repasar', AppState.bacteria.filter(b => b.estado === 'repasar').length);
+}
+
+/* ==========================================================================
+   6. FILTROS COMPARTIDOS
+   ========================================================================== */
+function getFilteredBacteria(state){
+  const term = normalizeText(state.search);
+  return AppState.bacteria
+    .filter(b => {
+      if (state.grupo && state.grupo !== 'ALL' && b.grupo !== state.grupo) return false;
+      if (state.gram && state.gram !== 'ALL' && b.gram !== state.gram) return false;
+      if (state.tipo && state.tipo !== 'ALL' && (b.tipo || 'bacteria') !== state.tipo) return false;
+      if (state.onlyFav && !b.favorito) return false;
+      if (state.onlyReview && b.estado !== 'repasar') return false;
+      if (term && !normalizeText([b.name, b.grupo, b.caracteristicas, b.morfologia].join(' ')).includes(term)) return false;
+      return true;
+    })
+    .sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+}
+
+function populateGroupSelect(selectEl){
+  if (!selectEl) return;
+  const current = selectEl.value || 'ALL';
+  const grupos = [...new Set(AppState.bacteria.map(b => b.grupo).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  selectEl.innerHTML = '<option value="ALL">Todos los grupos</option>' +
+    grupos.map(g => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join('');
+  selectEl.value = grupos.includes(current) ? current : 'ALL';
+}
+
+/* ==========================================================================
+   7. GRID DE BACTERIAS
+   ========================================================================== */
+const FilterState = { search:'', grupo:'ALL', gram:'ALL', tipo:'ALL', onlyFav:false, onlyReview:false };
+
+function setupBacteriaFilters(){
+  const search = document.getElementById('bacteriaSearchInput');
+  const grupo = document.getElementById('bacteriaGroupFilter');
+  const gram = document.getElementById('bacteriaGramFilter');
+  const tipo = document.getElementById('bacteriaTipoFilter');
+  const favBtn = document.getElementById('bacteriaFavToggle');
+  const reviewBtn = document.getElementById('bacteriaReviewToggle');
+  search?.addEventListener('input', () => { FilterState.search = search.value; renderBacterias(); });
+  grupo?.addEventListener('change', () => { FilterState.grupo = grupo.value; renderBacterias(); });
+  gram?.addEventListener('change', () => { FilterState.gram = gram.value; renderBacterias(); });
+  tipo?.addEventListener('change', () => { FilterState.tipo = tipo.value; renderBacterias(); });
+  favBtn?.addEventListener('click', () => {
+    FilterState.onlyFav = !FilterState.onlyFav;
+    favBtn.classList.toggle('active', FilterState.onlyFav);
+    renderBacterias();
+  });
+  reviewBtn?.addEventListener('click', () => {
+    FilterState.onlyReview = !FilterState.onlyReview;
+    reviewBtn.classList.toggle('active', FilterState.onlyReview);
+    renderBacterias();
+  });
+}
+
+function renderBacterias(){
+  const grid = document.getElementById('bacteriaGrid');
+  if (!grid) return;
+  const list = getFilteredBacteria(FilterState);
+
+  if (!list.length){
+    grid.innerHTML = emptyState('🧫', 'No se encontraron bacterias', 'Probá con otro término de búsqueda o cambiá los filtros.');
+    return;
+  }
+
+  grid.innerHTML = list.map(b => {
+    const rb = ribbonBadge(b);
+    return `
+    <div class="module-card" style="position:relative;" onclick="openBacteriaSheet('${b.id}')">
+      <button class="fav-btn card-fav-btn ${b.favorito ? 'active' : ''}" title="Marcar favorito" onclick="event.stopPropagation(); toggleFavorite('${b.id}');">${b.favorito ? '★' : '☆'}</button>
+      ${b.image ? `<img class="card-thumb" src="${escapeHTML(b.image)}" alt="${escapeHTML(b.name)}" loading="lazy" onerror="this.remove()">` : ''}
+      <div class="card-ribbon ${rb.cls}">
+        <span>${tipoIcon(b.tipo)} ${escapeHTML(rb.text)}</span>${b.isDemo ? '<span class="demo-tag">Demo</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${escapeHTML(b.name)}</div>
+        <div class="card-meta">${escapeHTML(b.grupo || 'Sin grupo')} ${b.estado === 'sabido' ? '<span class="estado-tag sabido">✅ Sabido</span>' : ''}${b.estado === 'repasar' ? '<span class="estado-tag repasar">🔁 Repasar</span>' : ''}</div>
+        <div class="card-dotted"></div>
+        <div class="card-summary">${escapeHTML(truncateText(b.caracteristicas || b.morfologia || '', 140)) || 'Sin resumen todavía.'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleFavorite(id){
+  const b = AppState.bacteria.find(x => x.id === id);
+  if (!b) return;
+  b.favorito = !b.favorito;
+  await saveToStorage();
+  refreshAllViews();
+}
+
+async function setEstado(id, estado){
+  const b = AppState.bacteria.find(x => x.id === id);
+  if (!b) return;
+  b.estado = (b.estado === estado) ? 'nuevo' : estado;
+  await saveToStorage();
+  refreshAllViews();
+}
+
+/* ==========================================================================
+   8. CUADRO SINÓPTICO (ficha individual, reutilizado en grid y deslizante)
+   ========================================================================== */
+function bacteriaSheetHTML(b, opts){
+  opts = opts || {};
+  const fields = FIELD_DEFS.filter(f => b[f.key] && String(b[f.key]).trim());
+  const fieldsHTML = fields.length ? `
+    <div class="sheet-sections-grid">
+      ${fields.map(f => `
+        <div class="section-block">
+          <h4>${f.icon} ${f.label}</h4>
+          <div class="section-block-content">${sanitizeHTML(b[f.key])}</div>
+        </div>`).join('')}
+    </div>` : `<p style="color:var(--text-secondary);">Esta bacteria todavía no tiene campos cargados. Agregá contenido desde "Agregar contenido".</p>`;
+
+  const rb = ribbonBadge(b);
+  const showActions = !!b.id;
+  return `
+    <div class="sheet-header">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem;">
+        <div>
+          <span class="badge-type ${rb.cls}">${tipoIcon(b.tipo)} ${escapeHTML(rb.text)}</span>
+          ${b.isDemo ? '<span class="demo-tag" style="margin-left:.5rem;">Demo</span>' : ''}
+          ${b.estado === 'sabido' ? '<span class="estado-tag sabido" style="margin-left:.5rem;">✅ Sabido</span>' : ''}
+          ${b.estado === 'repasar' ? '<span class="estado-tag repasar" style="margin-left:.5rem;">🔁 A repasar</span>' : ''}
+        </div>
+        ${showActions ? `<div style="display:flex; align-items:center; gap:.4rem;">
+          <button class="fav-btn ${b.favorito ? 'active' : ''}" title="Marcar favorito" onclick="toggleFavorite('${b.id}')">${b.favorito ? '★' : '☆'}</button>
+          <button class="btn" onclick="addToCompare('${b.id}')">⚖️ Agregar a comparar</button>
+        </div>` : ''}
+      </div>
+      <h1 style="margin-top:.6rem;">${escapeHTML(b.name)}</h1>
+      ${b.grupo ? `<div style="color:var(--text-secondary); font-family:var(--font-mono); font-size:.85rem; margin-top:.3rem;">${escapeHTML(b.grupo)}</div>` : ''}
+      ${b.image ? `<img class="topic-image" src="${escapeHTML(b.image)}" alt="${escapeHTML(b.name)}" loading="lazy" onerror="this.remove()" style="margin-top:1rem;">` : ''}
+    </div>
+    ${fieldsHTML}
+    ${(showActions && !opts.hideStudyActions) ? `<div class="study-actions" style="margin-top:1.5rem;">
+      <button class="btn study-know" onclick="setEstado('${b.id}','sabido')">✅ Lo sé</button>
+      <button class="btn study-review" onclick="setEstado('${b.id}','repasar')">🔁 A repasar</button>
+    </div>` : ''}`;
+}
+
+const SheetState = { list: [], index: 0 };
+
+function openBacteriaSheet(id){
+  const list = getFilteredBacteria(FilterState);
+  const idx = list.findIndex(b => b.id === id);
+  if (idx >= 0){
+    SheetState.list = list;
+    SheetState.index = idx;
+    renderBacteriaSheet();
+  } else {
+    const b = AppState.bacteria.find(x => x.id === id);
+    if (!b) return;
+    SheetState.list = [b];
+    SheetState.index = 0;
+    renderBacteriaSheet();
+  }
+  navigateTo('sec-bacteria-ficha');
+}
+
+function renderBacteriaSheet(){
+  const b = SheetState.list[SheetState.index];
+  if (!b) return;
+  const host = document.getElementById('bacteriaSheetHost');
+  if (host) host.innerHTML = bacteriaSheetHTML(b);
+  const nav = document.getElementById('bacteriaSheetNav');
+  if (nav){
+    if (SheetState.list.length > 1){
+      nav.style.display = 'flex';
+      setText('bsCounter', `${SheetState.index + 1} / ${SheetState.list.length}`);
+    } else {
+      nav.style.display = 'none';
+    }
+  }
+}
+
+function bacteriaSheetPrev(){
+  if (!SheetState.list.length) return;
+  SheetState.index = (SheetState.index - 1 + SheetState.list.length) % SheetState.list.length;
+  renderBacteriaSheet();
+}
+function bacteriaSheetNext(){
+  if (!SheetState.list.length) return;
+  SheetState.index = (SheetState.index + 1) % SheetState.list.length;
+  renderBacteriaSheet();
+}
+
+/* ==========================================================================
+   9. MODO DESLIZANTE
+   ========================================================================== */
+const SlideFilterState = { search:'', grupo:'ALL', gram:'ALL', tipo:'ALL' };
+const SlideState = { list: [], index: 0 };
+
+function setupSlideFilters(){
+  const search = document.getElementById('slideSearchInput');
+  const grupo = document.getElementById('slideGroupFilter');
+  const gram = document.getElementById('slideGramFilter');
+  const tipo = document.getElementById('slideTipoFilter');
+  search?.addEventListener('input', () => { SlideFilterState.search = search.value; SlideState.index = 0; renderSlideStage(); });
+  grupo?.addEventListener('change', () => { SlideFilterState.grupo = grupo.value; SlideState.index = 0; renderSlideStage(); });
+  gram?.addEventListener('change', () => { SlideFilterState.gram = gram.value; SlideState.index = 0; renderSlideStage(); });
+  tipo?.addEventListener('change', () => { SlideFilterState.tipo = tipo.value; SlideState.index = 0; renderSlideStage(); });
+
+  document.getElementById('slidePrevBtn')?.addEventListener('click', slidePrev);
+  document.getElementById('slideNextBtn')?.addEventListener('click', slideNext);
+}
+
+function renderSlideStage(){
+  const list = getFilteredBacteria(SlideFilterState);
+  SlideState.list = list;
+  if (SlideState.index >= list.length) SlideState.index = 0;
+
+  const stage = document.getElementById('slideStage');
+  const host = document.getElementById('slideCardHost');
+  const emptyHost = document.getElementById('slideEmptyHost');
+
+  if (!list.length){
+    if (stage) stage.style.display = 'none';
+    setText('slideCounter', '');
+    if (emptyHost) emptyHost.innerHTML = emptyState('🧫', 'No hay bacterias para deslizar', 'Cambiá los filtros o agregá contenido desde "Agregar contenido".');
+    return;
+  }
+
+  if (emptyHost) emptyHost.innerHTML = '';
+  if (stage) stage.style.display = 'flex';
+  if (host) host.innerHTML = `<div class="sheet-view">${bacteriaSheetHTML(list[SlideState.index])}</div>`;
+  setText('slideCounter', `${SlideState.index + 1} / ${list.length}`);
+}
+
+function slidePrev(){
+  if (!SlideState.list.length) return;
+  SlideState.index = (SlideState.index - 1 + SlideState.list.length) % SlideState.list.length;
+  renderSlideStage();
+}
+function slideNext(){
+  if (!SlideState.list.length) return;
+  SlideState.index = (SlideState.index + 1) % SlideState.list.length;
+  renderSlideStage();
+}
+
+function setupSlideSwipe(){
+  const stage = document.getElementById('slideStage');
+  if (!stage) return;
+  let startX = 0, startY = 0, tracking = false;
+
+  stage.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY; tracking = true;
+  }, { passive:true });
+
+  stage.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    tracking = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){
+      dx < 0 ? slideNext() : slidePrev();
+    }
+  }, { passive:true });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    if (document.getElementById('sec-deslizar')?.classList.contains('active')){
+      e.key === 'ArrowRight' ? slideNext() : slidePrev();
+    } else if (document.getElementById('sec-bacteria-ficha')?.classList.contains('active')){
+      e.key === 'ArrowRight' ? bacteriaSheetNext() : bacteriaSheetPrev();
+    }
+  });
+}
+
+/* ==========================================================================
+   9.5. COMPARAR (SIN LÍMITE)
+   ========================================================================== */
+const CompareState = { selected: [], filter:{ search:'', grupo:'ALL', tipo:'ALL' } };
+
+function setupCompare(){
+  const search = document.getElementById('compareSearchInput');
+  const grupo = document.getElementById('compareGroupFilter');
+  const tipo = document.getElementById('compareTipoFilter');
+  search?.addEventListener('input', () => { CompareState.filter.search = search.value; renderComparePickList(); });
+  grupo?.addEventListener('change', () => { CompareState.filter.grupo = grupo.value; renderComparePickList(); });
+  tipo?.addEventListener('change', () => { CompareState.filter.tipo = tipo.value; renderComparePickList(); });
+  document.getElementById('compareClearBtn')?.addEventListener('click', () => {
+    CompareState.selected = [];
+    renderCompareAll();
+  });
+  document.getElementById('compareDownloadPdfBtn')?.addEventListener('click', downloadComparePdf);
+}
+
+function addToCompare(id){
+  if (!CompareState.selected.includes(id)){
+    CompareState.selected.push(id);
+  }
+  renderCompareAll();
+  navigateTo('sec-comparar');
+}
+
+function toggleCompareSelect(id){
+  const i = CompareState.selected.indexOf(id);
+  if (i >= 0){ CompareState.selected.splice(i, 1); }
+  else {
+    CompareState.selected.push(id);
+  }
+  renderCompareAll();
+}
+
+function renderCompareAll(){
+  renderComparePickList();
+  renderCompareChips();
+  renderCompareTable();
+  const navCount = document.getElementById('navCompareCount');
+  const pdfBtn = document.getElementById('compareDownloadPdfBtn');
+  if (navCount){
+    if (CompareState.selected.length){
+      navCount.style.display = 'inline-block';
+      navCount.textContent = CompareState.selected.length;
+    } else {
+      navCount.style.display = 'none';
+    }
+  }
+  if (pdfBtn){
+    pdfBtn.style.display = CompareState.selected.length >= 2 ? 'inline-block' : 'none';
+  }
+}
+
+function renderComparePickList(){
+  const host = document.getElementById('comparePickList');
+  if (!host) return;
+  const list = getFilteredBacteria({ search:CompareState.filter.search, grupo:CompareState.filter.grupo, tipo:CompareState.filter.tipo, gram:'ALL' });
+  if (!list.length){
+    host.innerHTML = manageEmpty('🧫', 'No hay microorganismos que coincidan con el filtro.');
+    return;
+  }
+  host.innerHTML = list.map(b => {
+    const checked = CompareState.selected.includes(b.id);
+    return `
+    <label class="compare-pick-row ${checked ? 'checked' : ''}">
+      <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleCompareSelect('${b.id}')">
+      <span>${tipoIcon(b.tipo)}</span>
+      <span>
+        <div class="compare-pick-title">${escapeHTML(b.name)}</div>
+        <div class="compare-pick-meta">${escapeHTML(b.grupo || 'Sin grupo')}</div>
+      </span>
+    </label>`;
+  }).join('');
+}
+
+function renderCompareChips(){
+  const host = document.getElementById('compareChips');
+  if (!host) return;
+  const items = CompareState.selected.map(id => AppState.bacteria.find(b => b.id === id)).filter(Boolean);
+  host.innerHTML = items.map(b => `
+    <span class="chip">${tipoIcon(b.tipo)} ${escapeHTML(b.name)}<button title="Quitar" onclick="toggleCompareSelect('${b.id}')">×</button></span>`).join('');
+}
+
+function renderCompareTable(){
+  const host = document.getElementById('compareTableHost');
+  if (!host) return;
+  const items = CompareState.selected.map(id => AppState.bacteria.find(b => b.id === id)).filter(Boolean);
+
+  if (items.length < 2){
+    host.innerHTML = emptyState('⚖️', 'Elegí al menos 2 para comparar', 'Marcá los microorganismos en la lista de arriba. ¡Ahora sin límite de cantidad!');
+    return;
+  }
+
+  const fieldsUsed = FIELD_DEFS.filter(f => items.some(b => b[f.key] && String(b[f.key]).trim()));
+
+  host.innerHTML = `
+    <div class="compare-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th class="compare-field-label">Microorganismo</th>
+            ${items.map(b => `<th class="compare-col-head"><div class="compare-name">${escapeHTML(b.name)}</div><div style="font-size:.75rem; color:var(--text-secondary); margin-top:.2rem;">${escapeHTML(b.grupo || 'Sin grupo')}</div></th>`).join('')}
+          </tr>
+          <tr>
+            <td class="compare-field-label">Clasificación</td>
+            ${items.map(b => { const rb = ribbonBadge(b); return `<td><span class="badge-type ${rb.cls}">${tipoIcon(b.tipo)} ${escapeHTML(rb.text)}</span></td>`; }).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${fieldsUsed.map(f => `
+            <tr>
+              <td class="compare-field-label">${f.icon} ${f.label}</td>
+              ${items.map(b => `<td>${b[f.key] && String(b[f.key]).trim() ? sanitizeHTML(b[f.key]) : '<span class="compare-empty-cell">—</span>'}</td>`).join('')}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function downloadComparePdf(){
+  const items = CompareState.selected.map(id => AppState.bacteria.find(b => b.id === id)).filter(Boolean);
+  if (items.length < 2){
+    alert('Necesitás al menos 2 microorganismos seleccionados para descargar.');
+    return;
+  }
+
+  const fieldsUsed = FIELD_DEFS.filter(f => items.some(b => b[f.key] && String(b[f.key]).trim()));
+  
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Comparación</title>
+      <style>
+        * { margin: 0; padding: 0; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          color: #333;
+          font-size: 11px;
+          line-height: 1.3;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin: 0;
+          page-break-inside: avoid;
+        }
+        th { 
+          background-color: #eaf7ee; 
+          font-weight: bold; 
+          color: #15803d;
+          border: 1px solid #d7ecdc;
+          padding: 6px 4px;
+          text-align: left;
+          font-size: 10px;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+        }
+        td { 
+          border: 1px solid #d7ecdc; 
+          padding: 6px 4px;
+          font-size: 10px;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+        }
+        tr:nth-child(even) { background-color: #f9fdf9; }
+        tr:nth-child(odd) { background-color: #ffffff; }
+        .badge { 
+          display: inline-block; 
+          padding: 2px 4px; 
+          border-radius: 3px; 
+          font-size: 9px; 
+          font-weight: bold;
+          background-color: #e6f7ea;
+          color: #15803d;
+          border: 1px solid #79c496;
+        }
+        .bacteria-name { 
+          font-style: italic; 
+          font-weight: bold; 
+          font-size: 11px;
+        }
+        .field-label {
+          font-weight: bold;
+          background-color: #f0f0f0;
+          width: 140px;
+          min-width: 140px;
+          max-width: 140px;
+        }
+        .empty-cell { color: #999; }
+        @media print {
+          table { page-break-inside: avoid; }
+          tbody tr { page-break-inside: avoid; }
+        }
+      </style>
+    </head>
+    <body>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 140px; min-width: 140px;">Microorganismo</th>
+            ${items.map(b => `<th class="bacteria-name">${b.name}</th>`).join('')}
+          </tr>
+          <tr>
+            <th class="field-label">Clasificación</th>
+            ${items.map(b => {
+              const rb = ribbonBadge(b);
+              return `<td><span class="badge">${tipoIcon(b.tipo)} ${rb.text}</span></td>`;
+            }).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${fieldsUsed.map(f => `
+            <tr>
+              <th class="field-label">${f.icon} ${f.label}</th>
+              ${items.map(b => `<td>${b[f.key] && String(b[f.key]).trim() ? b[f.key] : '<span class="empty-cell">—</span>'}</td>`).join('')}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const filename = items.length <= 3 
+    ? `comparacion-${items.map(b => b.name.substring(0, 10)).join('-')}.pdf`
+    : `comparacion-${items.length}-microorganismos.pdf`;
+  
+  const opt = {
+    margin: [8, 6, 8, 6],
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4', compress: true }
+  };
+
+  html2pdf().set(opt).from(htmlContent).save();
+}
+
+/* ==========================================================================
+   9.5.5. CONCEPTOS / TEORÍA
+   ========================================================================== */
+const CONCEPTOS = [
+  {
+    id: 'concepto-1',
+    titulo: 'Estructura General de las Bacterias',
+    categoria: 'bacteria',
+    contenido: `Las bacterias son organismos procariotas que pertenecen al Reino Monera. Presentan varias diferencias estructurales fundamentales con las células eucariotas que permiten la aparición de protecciones del huésped y proporcionan la base del tratamiento antimicrobiano.
+
+<strong>Características principales:</strong>
+• <strong>Membrana plasmática:</strong> Rodea el citoplasma; en bacterias Gram positivas, la pared celular está adherida. En Gram negativas, existe un espacio entre la membrana plasmática y la pared celular.
+• <strong>Pared celular:</strong> Estructura rígida que proporciona forma a la bacteria. Está compuesta por peptidoglicano (polímero de glucosa y aminoácidos).
+• <strong>Cápsula:</strong> Capa externa gelatinosa que protege a la bacteria y favorece la adhesión.
+• <strong>Flagelos:</strong> Estructuras móviles que permiten el movimiento.
+• <strong>Pili o fimbrias:</strong> Estructuras filamentosas cortas que intervienen en la adhesión a las células hospedadoras.
+• <strong>Nucleoide:</strong> Región donde se localiza el ADN bacteriano (no rodeada de membrana nuclear).
+• <strong>Ribosomas:</strong> De tipo 70S, donde se sintetizan las proteínas.`
+  },
+  {
+    id: 'concepto-2',
+    titulo: 'Diferencias Gram Positivas vs Gram Negativas',
+    categoria: 'bacteria',
+    contenido: `La tinción de Gram es una herramienta diagnóstica fundamental que diferencia a las bacterias según su estructura de pared celular.
+
+<strong>BACTERIAS GRAM POSITIVAS:</strong>
+• Pared celular más gruesa (20-80 nm)
+• Compuesta principalmente de peptidoglicano
+• La membrana plasmática está directamente adherida a la pared
+• Retienen el cristal violeta y aparecen de color azul/púrpura
+• Ejemplos: Staphylococcus aureus, Streptococcus pyogenes, Mycobacterium tuberculosis
+
+<strong>BACTERIAS GRAM NEGATIVAS:</strong>
+• Pared celular más delgada (10-20 nm)
+• Poseen una membrana externa adicional
+• Entre la membrana plasmática y la pared existe un espacio periplásmico
+• No retienen el cristal violeta; aparecen de color rojo/rosa
+• Ejemplos: Escherichia coli, Vibrio cholerae, Pseudomonas aeruginosa
+
+<strong>Implicaciones clínicas:</strong>
+Las diferencias en la estructura de pared celular tienen implicaciones importantes:
+• <strong>Permeabilidad:</strong> Las Gram negativas tienen mayor permeabilidad a algunos antibióticos
+• <strong>Toxicidad:</strong> Las Gram negativas contienen lipopolisacárido (LPS) en la membrana externa, que es más tóxico
+• <strong>Respuesta inmune:</strong> Diferente activación del complemento y respuesta inflamatoria`
+  },
+  {
+    id: 'concepto-3',
+    titulo: 'Metabolismo y Transmisión Bacteriana',
+    categoria: 'bacteria',
+    contenido: `<strong>METABOLISMO BACTERIANO:</strong>
+
+Las bacterias pueden clasificarse según su forma de obtener energía:
+
+<strong>Heterótrofas (la mayoría de patógenas):</strong>
+• Utilizan moléculas orgánicas como fuente de energía
+• Incluyen anaerobias facultativas (como E. coli) y anaerobias estrictas
+• Aerobias estrictas (requieren oxígeno)
+
+<strong>TRANSMISIÓN BACTERIANA:</strong>
+
+Las bacterias se transmiten por diversos mecanismos:
+
+• <strong>Contacto directo:</strong> Transmisión de persona a persona mediante contacto físico
+• <strong>Gotas respiratorias:</strong> A través de gotitas que expulsa una persona infectada al toser o estornudar
+• <strong>Vía fecal-oral:</strong> Por consumo de alimentos o agua contaminados
+• <strong>Vectores:</strong> Por artrópodos como mosquitos, pulgas o garrapatas
+• <strong>Transmisión vertical:</strong> De madre a hijo, durante el parto o por vía transplacentaria`
+  },
+  {
+    id: 'concepto-4',
+    titulo: 'Ciclo Replicativo de los Virus',
+    categoria: 'virus',
+    contenido: `Los virus son agentes infecciosos obligados que requieren la maquinaria celular del hospedador para replicarse.
+
+<strong>COMPONENTES VIRALES:</strong>
+• <strong>Genoma:</strong> ARN o ADN, simple o doble cadena
+• <strong>Cápside:</strong> Envoltura proteica que protege el genoma
+• <strong>Envoltura:</strong> Membrana lipídica adquirida de la célula hospedadora (en virus envueltos)
+• <strong>Espículas/Glucoproteínas:</strong> Proteínas de superficie que permiten el reconocimiento del receptor
+
+<strong>CICLO REPLICATIVO GENERAL:</strong>
+
+1. <strong>Adhesión:</strong> Las espículas virales reconocen receptores específicos en la célula hospedadora
+2. <strong>Entrada:</strong> El virus ingresa por endocitosis o fusión de membranas
+3. <strong>Desnudamiento:</strong> La cápside se desensambla y el genoma queda libre
+4. <strong>Replicación:</strong> 
+   • En virus de ADN: ocurre principalmente en el núcleo
+   • En virus de ARN: ocurre en el citoplasma
+5. <strong>Síntesis proteica:</strong> Se producen nuevas proteínas virales
+6. <strong>Ensamblaje:</strong> Se arman nuevos viriones
+7. <strong>Liberación:</strong> Los nuevos viriones salen de la célula, a menudo lisándola`
+  },
+  {
+    id: 'concepto-5',
+    titulo: 'Patogenia Viral: Respuesta Inmune',
+    categoria: 'virus',
+    contenido: `<strong>MECANISMOS DE DAÑO VIRAL:</strong>
+
+El daño causado por los virus puede deberse a:
+
+• <strong>Daño directo:</strong> Lisis celular causada por la replicación viral
+• <strong>Respuesta inmune:</strong> Los linfocitos T reaccionan contra las células infectadas
+• <strong>Inmunosupresión:</strong> Algunos virus suprimen la respuesta inmune, favoreciendo infecciones secundarias
+• <strong>Efectos sistémicos:</strong> Citoquinas inflamatorias que causan daño en órganos distantes
+
+<strong>TIPOS DE INFECCIÓN VIRAL:</strong>
+
+1. <strong>Infección aguda:</strong> El virus se replica, causa daño y es eliminado
+2. <strong>Infección persistente:</strong> El virus permanece en el organismo de forma crónica
+3. <strong>Infección latente:</strong> El virus se mantiene en forma inactiva (ej: herpes)
+4. <strong>Transformación maligna:</strong> El virus integra su genoma en el hospedador (ej: papilomavirus)
+
+<strong>RESPUESTA INMUNE:</strong>
+• <strong>Inmunidad innata:</strong> Interferones, células NK
+• <strong>Inmunidad adaptativa:</strong> Anticuerpos neutralizantes, linfocitos T citotóxicos`
+  },
+  {
+    id: 'concepto-6',
+    titulo: 'Principios de Diagnóstico Microbiológico',
+    categoria: 'general',
+    contenido: `<strong>MÉTODOS DE AISLAMIENTO:</strong>
+
+• <strong>Cultivo:</strong> Siembra de muestras en medios de cultivo selectivos o no selectivos
+• <strong>PCR (Reacción en Cadena de la Polimerasa):</strong> Amplificación de ácidos nucleicos para detectar patógenos
+• <strong>Aislamiento viral:</strong> En cultivo celular, en embrión de pollo o en animales de laboratorio
+
+<strong>IDENTIFICACIÓN:</strong>
+
+• <strong>Tinción de Gram:</strong> Para bacterias
+• <strong>Tinción de Ziehl-Neelsen:</strong> Para bacterias ácido-alcohol resistentes
+• <strong>Pruebas bioquímicas:</strong> Fermentación de azúcares, producción de gases
+• <strong>Serología:</strong> Detección de anticuerpos (IgM para infección aguda, IgG para respuesta inmunitaria)
+• <strong>Microscopia electrónica:</strong> Para visualizar virus
+
+<strong>CONSIDERACIONES PRÁCTICAS:</strong>
+
+• El <strong>tipo de muestra</strong> es crítico: debe ser representativo del sitio de infección
+• El <strong>momento de recolección</strong> afecta la sensibilidad (p. ej., PCR de COVID en nasofaringe es más sensible que en orina)
+• El <strong>transporte y almacenamiento</strong> pueden afectar la viabilidad del microorganismo
+• La <strong>contaminación</strong> debe minimizarse mediante técnica aséptica`
+  },
+  {
+    id: 'concepto-7',
+    titulo: 'Mecanismos de Resistencia Antimicrobiana',
+    categoria: 'bacteria',
+    contenido: `<strong>TIPOS DE RESISTENCIA:</strong>
+
+1. <strong>Resistencia Intrínseca:</strong> Característica natural de la bacteria, no adquirida
+
+2. <strong>Resistencia Adquirida:</strong>
+   • <strong>Por mutación:</strong> Cambios en el gen que afectan la estructura del antibiótico o su transporte
+   • <strong>Por transferencia genética:</strong> 
+     - Conjugación (plásmidos)
+     - Transformación (ADN libre)
+     - Transducción (por bacteriófagos)
+
+<strong>MECANISMOS MOLECULARES:</strong>
+
+• <strong>Inactivación enzimática:</strong> Producción de enzimas que degradan el antibiótico (β-lactamasas)
+• <strong>Modificación del sitio blanco:</strong> Alteración de la estructura que reconoce el antibiótico
+• <strong>Bombas de eflujo:</strong> Expulsión activa del antibiótico de la célula
+• <strong>Permeabilidad reducida:</strong> Disminución de canales por los que entra el antibiótico
+
+<strong>IMPLICACIONES CLÍNICAS:</strong>
+
+La resistencia antimicrobiana es un problema global de salud pública que requiere:
+• Uso racional de antibióticos
+• Aislamiento de pacientes con bacterias multirresistentes
+• Desarrollo de nuevos antimicrobianos
+• Medidas de control de infecciones`
+  }
+];
+
+const ConceptState = { search:'', category:'ALL', currentConcept:null };
+
+function setupConceptos(){
+  const search = document.getElementById('conceptSearchInput');
+  const category = document.getElementById('conceptCategoryFilter');
+  search?.addEventListener('input', () => { ConceptState.search = search.value; renderConceptos(); });
+  category?.addEventListener('change', () => { ConceptState.category = category.value; renderConceptos(); });
+}
+
+function renderConceptos(){
+  const host = document.getElementById('conceptHost');
+  if (!host) return;
+  
+  if (ConceptState.currentConcept){
+    const concepto = CONCEPTOS.find(c => c.id === ConceptState.currentConcept);
+    if (concepto){
+      host.innerHTML = `
+        <div style="margin-bottom:1rem;">
+          <button class="btn" onclick="ConceptState.currentConcept=null; renderConceptos();">← Volver</button>
+        </div>
+        <div class="sheet-view">
+          <div class="sheet-header">
+            <h1>${concepto.titulo}</h1>
+            <span class="badge-type" style="margin-top:.5rem;">${concepto.categoria === 'bacteria' ? '🧫 Bacterias' : concepto.categoria === 'virus' ? '🦠 Virus' : '📚 General'}</span>
+          </div>
+          <div style="font-size:.95rem; line-height:1.7; color:#333;">
+            ${sanitizeHTML(concepto.contenido)}
+          </div>
+        </div>
+      `;
+    }
+    return;
+  }
+  
+  const term = normalizeText(ConceptState.search);
+  let list = CONCEPTOS.filter(c => {
+    if (ConceptState.category !== 'ALL' && c.categoria !== ConceptState.category) return false;
+    if (term && !normalizeText(c.titulo).includes(term)) return false;
+    return true;
+  });
+  
+  if (!list.length){
+    host.innerHTML = emptyState('📚', 'No se encontraron conceptos', 'Probá con otro término o cambiá el filtro.');
+    return;
+  }
+  
+  host.innerHTML = list.map(c => `
+    <div class="module-card" onclick="ConceptState.currentConcept='${c.id}'; renderConceptos()">
+      <div class="card-ribbon badge-gram-positivo" style="background-color: ${c.categoria === 'bacteria' ? '#f1e6fb' : c.categoria === 'virus' ? '#dff1fc' : '#fdefd6'}; color: ${c.categoria === 'bacteria' ? '#6b2d99' : c.categoria === 'virus' ? '#075985' : '#8a5a10'};">
+        <span>${c.categoria === 'bacteria' ? '🧫 Bacterias' : c.categoria === 'virus' ? '🦠 Virus' : '📚 General'}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${c.titulo}</div>
+        <div style="font-size:.85rem; color:#666; margin-top:.5rem;">Haz clic para leer más →</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ==========================================================================
+   9.5.6. EXAMEN
+   ========================================================================== */
+const PREGUNTAS_EXAMEN = [
+  {
+    id: 'exam-1',
+    pregunta: '¿Cuál es la principal diferencia estructural entre una bacteria Gram positiva y una Gram negativa?',
+    categoria: 'bacteria',
+    dificultad: 'básico',
+    opciones: {
+      a: 'Las Gram negativas tienen una membrana externa adicional',
+      b: 'Las Gram positivas tienen flagelos y las Gram negativas no',
+      c: 'Las Gram negativas contienen ácido teicoico',
+      d: 'Las Gram positivas tienen pared celular más delgada'
+    },
+    respuesta: 'a',
+    explicacion: 'Las bacterias Gram negativas poseen una membrana externa adicional que no tienen las Gram positivas. Esta membrana contiene lipopolisacáridos y es la razón por la que no retienen el cristal violeta de la tinción de Gram.'
+  },
+  {
+    id: 'exam-2',
+    pregunta: '¿Cuál es el receptor celular reconocido por el SARS-CoV-2 para entrar a la célula?',
+    categoria: 'virus',
+    dificultad: 'básico',
+    opciones: {
+      a: 'Receptor CD4',
+      b: 'ACE2 (enzima convertidora de angiotensina 2)',
+      c: 'Receptor CXCR4',
+      d: 'Ácido siálico'
+    },
+    respuesta: 'b',
+    explicacion: 'El SARS-CoV-2 reconoce el receptor ACE2 mediante su proteína Spike. Este receptor se encuentra principalmente en el epitelio respiratorio, lo que explica por qué el virus causa enfermedad respiratoria primariamente.'
+  },
+  {
+    id: 'exam-3',
+    pregunta: '¿Qué mecanismo NO representa una forma de transferencia genética bacteriana?',
+    categoria: 'bacteria',
+    dificultad: 'intermedio',
+    opciones: {
+      a: 'Conjugación mediante plásmidos',
+      b: 'Transformación por ADN libre',
+      c: 'Mitosis celular',
+      d: 'Transducción por bacteriófagos'
+    },
+    respuesta: 'c',
+    explicacion: 'La mitosis es un proceso de reproducción asexual de las células eucariotas. Las bacterias se reproducen por fisión binaria, no por mitosis. La transferencia genética bacteriana ocurre por conjugación, transformación y transducción.'
+  },
+  {
+    id: 'exam-4',
+    pregunta: '¿Cuál es la principal ventaja de E. coli como organismo modelo en microbiología?',
+    categoria: 'bacteria',
+    dificultad: 'intermedio',
+    opciones: {
+      a: 'Es patógena en todos los humanos',
+      b: 'Tiene un ciclo replicativo muy lento',
+      c: 'Es fácil de cultivar, tiene genoma pequeño y bien caracterizado',
+      d: 'Produce toxinas de alto nivel'
+    },
+    respuesta: 'c',
+    explicacion: 'E. coli es un modelo excelente porque es fácil de cultivar in vitro, su genoma es relativamente pequeño (~4.6 millones de pares de bases) y está completamente secuenciado y bien caracterizado molecularmente.'
+  },
+  {
+    id: 'exam-5',
+    pregunta: '¿Cuál es el principal mecanismo de acción de los antibióticos β-lactámicos?',
+    categoria: 'bacteria',
+    dificultad: 'intermedio',
+    opciones: {
+      a: 'Inhibición de la síntesis proteica ribosómica',
+      b: 'Inhibición de la síntesis de la pared celular de peptidoglicano',
+      c: 'Daño directo a la membrana plasmática',
+      d: 'Inhibición de la replicación del ADN'
+    },
+    respuesta: 'b',
+    explicacion: 'Los β-lactámicos se unen a proteínas fijadoras de penicilina e inhiben la transpeptidación necesaria para el entrecruzamiento de peptidoglicano, debilitando la pared celular bacteriana.'
+  },
+  {
+    id: 'exam-6',
+    pregunta: '¿Dónde ocurre principalmente la replicación del genoma en el adenovirus?',
+    categoria: 'virus',
+    dificultad: 'intermedio',
+    opciones: {
+      a: 'En el citoplasma',
+      b: 'En la membrana plasmática',
+      c: 'En el núcleo celular',
+      d: 'En las mitocondrias'
+    },
+    respuesta: 'c',
+    explicacion: 'El adenovirus es un virus con genoma de ADN bicatenario, y su replicación ocurre en el núcleo porque el virus necesita utilizar la maquinaria relacionada con el metabolismo del ADN de la célula hospedadora.'
+  },
+  {
+    id: 'exam-7',
+    pregunta: '¿Cuál es la principal razón por la que Mycobacterium tuberculosis es tan resistente a los desinfectantes?',
+    categoria: 'bacteria',
+    dificultad: 'avanzado',
+    opciones: {
+      a: 'Produce endosporas resistentes',
+      b: 'Posee una pared celular rica en ácidos micólicos',
+      c: 'Tiene una cápsula polisacárida muy espesa',
+      d: 'Produce toxinas que inactivan desinfectantes'
+    },
+    respuesta: 'b',
+    explicacion: 'La pared celular de M. tuberculosis es rica en ácidos micólicos, que son ácidos grasos de cadena larga que proporcionan una barrera hidrofóbica muy resistente. Esto la hace ácido-alcohol resistente y resistente a muchos desinfectantes.'
+  },
+  {
+    id: 'exam-8',
+    pregunta: '¿Qué característica del virus de la rubéola congénita la hace especialmente importante en salud pública?',
+    categoria: 'virus',
+    dificultad: 'avanzado',
+    opciones: {
+      a: 'Es letal en el 50% de los casos',
+      b: 'Produce síntomas muy graves en niños infectados',
+      c: 'Puede causar daño teratogénico si infecta a la madre en el primer trimestre del embarazo',
+      d: 'No existe vacuna disponible'
+    },
+    respuesta: 'c',
+    explicacion: 'La rubéola congénita es importante porque el virus puede atravesar la placenta e infectar al feto durante el embarazo, especialmente en el primer trimestre, causando sordera, cardiopatías, retraso mental y otras secuelas teratogénicas.'
+  },
+  {
+    id: 'exam-9',
+    pregunta: '¿Cuál es el principal mecanismo de resistencia de Staphylococcus aureus a la meticilina (SAMR)?',
+    categoria: 'bacteria',
+    dificultad: 'avanzado',
+    opciones: {
+      a: 'Producción de β-lactamasas que degradan la meticilina',
+      b: 'Alteración de la estructura de la PBP2a (proteína fijadora de penicilina modificada)',
+      c: 'Bombas de eflujo que expulsan la meticilina',
+      d: 'Reducción de la permeabilidad de la membrana'
+    },
+    respuesta: 'b',
+    explicacion: 'El SAMR (Staphylococcus aureus resistente a meticilina) adquiere resistencia principalmente por posesión de un gen (mecA) que codifica una proteína fijadora de penicilina (PBP2a) alterada que no es reconocida por los β-lactámicos.'
+  },
+  {
+    id: 'exam-10',
+    pregunta: '¿Cuál es la principal diferencia entre la infección por VRS y la infección por coronavirus en términos de diseminación?',
+    categoria: 'virus',
+    dificultad: 'avanzado',
+    opciones: {
+      a: 'El VRS produce viremia sistémica, el coronavirus no',
+      b: 'El VRS se localiza en el tracto respiratorio, los coronavirus producen viremia',
+      c: 'No hay diferencia en la diseminación',
+      d: 'El coronavirus produce viremia inicial pero el VRS permanece localizado'
+    },
+    respuesta: 'b',
+    explicacion: 'El VRS permanece localizado en el tracto respiratorio sin producir viremia significativa. Los coronavirus, aunque principalmente respiratorios, pueden producir viremia y diseminación sistémica, lo que explica síntomas en otros órganos.'
+  }
+];
+
+const ExamState = { 
+  preguntas: [], 
+  index: 0, 
+  respuestas: {},
+  filter: { dificultad: 'ALL', categoria: 'ALL' },
+  mostrarResultado: false 
+};
+
+function setupExamen(){
+  const dif = document.getElementById('examDifficultyFilter');
+  const cat = document.getElementById('examCategoryFilter');
+  const reset = document.getElementById('examResetBtn');
+  
+  dif?.addEventListener('change', () => { ExamState.filter.dificultad = dif.value; buildExam(); });
+  cat?.addEventListener('change', () => { ExamState.filter.categoria = cat.value; buildExam(); });
+  reset?.addEventListener('click', () => {
+    ExamState.respuestas = {};
+    ExamState.index = 0;
+    ExamState.mostrarResultado = false;
+    renderExamen();
+  });
+}
+
+function buildExam(){
+  let preguntas = PREGUNTAS_EXAMEN.filter(p => {
+    if (ExamState.filter.dificultad !== 'ALL' && p.dificultad !== ExamState.filter.dificultad) return false;
+    if (ExamState.filter.categoria !== 'ALL' && p.categoria !== ExamState.filter.categoria) return false;
+    return true;
+  });
+  
+  ExamState.preguntas = preguntas;
+  ExamState.index = 0;
+  ExamState.respuestas = {};
+  ExamState.mostrarResultado = false;
+  renderExamen();
+}
+
+function renderExamen(){
+  const host = document.getElementById('examHost');
+  if (!host) return;
+  
+  if (!ExamState.preguntas.length){
+    host.innerHTML = emptyState('📝', 'No hay preguntas disponibles', 'Cambiá los filtros para ver más preguntas.');
+    return;
+  }
+  
+  if (ExamState.index >= ExamState.preguntas.length){
+    renderExamenResumen();
+    return;
+  }
+  
+  const p = ExamState.preguntas[ExamState.index];
+  const respuesta = ExamState.respuestas[p.id];
+  const progressPct = Math.round((ExamState.index / ExamState.preguntas.length) * 100);
+  
+  let html = `
+    <div class="study-progress-bar"><div class="study-progress-fill" style="width:${progressPct}%;"></div></div>
+    <div class="study-progress-label">
+      <span>Pregunta ${ExamState.index + 1} / ${ExamState.preguntas.length}</span>
+      <span>Dificultad: <strong>${p.dificultad === 'básico' ? '🟢 Básico' : p.dificultad === 'intermedio' ? '🟡 Intermedio' : '🔴 Avanzado'}</strong></span>
+    </div>
+    
+    <div class="sheet-view" style="margin-bottom:1.5rem;">
+      <div class="sheet-header">
+        <h2 style="font-size:1.2rem; margin-bottom:1rem;">${escapeHTML(p.pregunta)}</h2>
+      </div>
+      
+      <div style="display:flex; flex-direction:column; gap:.8rem;">
+  `;
+  
+  Object.entries(p.opciones).forEach(([key, valor]) => {
+    const esSeleccionada = respuesta === key;
+    const esCorrecta = key === p.respuesta;
+    const mostrarResultado = ExamState.mostrarResultado && respuesta;
+    
+    let estilo = 'border-left:3px solid #d7ecdc; background-color:#f9fdf9;';
+    if (mostrarResultado){
+      if (esCorrecta){
+        estilo = 'border-left:3px solid #15803d; background-color:#dcfce7;';
+      } else if (esSeleccionada && !esCorrecta){
+        estilo = 'border-left:3px solid #b91c1c; background-color:#fee2e2;';
+      }
+    } else if (esSeleccionada){
+      estilo = 'border-left:3px solid #16a34a; background-color:#e6f7ea;';
+    }
+    
+    html += `
+      <button 
+        class="btn" 
+        style="padding:1rem; text-align:left; ${estilo} ${mostrarResultado ? 'cursor:default;' : ''}" 
+        onclick="${mostrarResultado ? '' : `selectExamOption('${key}', '${p.id}')`}"
+      >
+        <strong style="font-size:1.1rem;">` + (key.toUpperCase()) + `)</strong> ${escapeHTML(valor)}
+        ${mostrarResultado && esCorrecta ? ' ✅' : mostrarResultado && esSeleccionada && !esCorrecta ? ' ❌' : ''}
+      </button>
+    `;
+  });
+  
+  html += `
+      </div>
+  `;
+  
+  if (ExamState.mostrarResultado && respuesta){
+    html += `
+      <div class="section-block" style="margin-top:1.5rem; background-color:#e6f7ea; border-left-color:#15803d;">
+        <h4>📖 Explicación</h4>
+        <p style="margin-top:.5rem; color:#333;">${escapeHTML(PREGUNTAS_EXAMEN.find(q => q.id === p.id).explicacion)}</p>
+      </div>
+    `;
+  }
+  
+  html += `
+    </div>
+    
+    <div class="controls-bar">
+  `;
+  
+  if (!respuesta){
+    html += `<p style="color:#999;">Seleccioná una opción para continuar</p>`;
+  } else if (!ExamState.mostrarResultado){
+    html += `<button class="btn gold" onclick="ExamState.mostrarResultado=true; renderExamen();">Ver resultado →</button>`;
+  } else {
+    html += `<button class="btn gold" onclick="ExamState.index++; ExamState.mostrarResultado=false; renderExamen();">Siguiente pregunta →</button>`;
+  }
+  
+  html += `</div>`;
+  host.innerHTML = html;
+}
+
+function selectExamOption(opcion, preguntaId){
+  ExamState.respuestas[preguntaId] = opcion;
+  renderExamen();
+}
+
+function renderExamenResumen(){
+  const host = document.getElementById('examHost');
+  if (!host) return;
+  
+  let correctas = 0;
+  ExamState.preguntas.forEach(p => {
+    if (ExamState.respuestas[p.id] === p.respuesta) correctas++;
+  });
+  
+  const porcentaje = Math.round((correctas / ExamState.preguntas.length) * 100);
+  const calificacion = porcentaje >= 90 ? 'Excelente' : porcentaje >= 75 ? 'Muy bien' : porcentaje >= 60 ? 'Bien' : 'Necesitas repasar';
+  
+  host.innerHTML = `
+    <div class="study-summary">
+      <div class="ss-big">${porcentaje >= 75 ? '🎉' : '📚'}</div>
+      <h2>¡Examen finalizado!</h2>
+      <p class="page-subtitle" style="margin:.5rem auto 1.5rem;">
+        <strong style="font-size:1.3rem;">${correctas} / ${ExamState.preguntas.length}</strong> respuestas correctas
+      </p>
+      <div style="background-color:#eaf7ee; border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+        <div style="font-size:2rem; font-weight:bold; color:#15803d;">${porcentaje}%</div>
+        <div style="font-size:1.1rem; color:#1c4228; margin-top:.3rem;"><strong>${calificacion}</strong></div>
+      </div>
+      <div class="study-actions">
+        <button class="btn gold" onclick="buildExam()">🔄 Hacer examen de nuevo</button>
+        <button class="btn" onclick="navigateTo('sec-inicio')">← Volver al inicio</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================================
+   9.6. MODO ESTUDIO (flashcards con autoevaluación)
+   ========================================================================== */
+const StudyState = { queue:[], index:0, revealed:false, known:0, review:0, filter:{ tipo:'ALL', grupo:'ALL', scope:'ALL' } };
+
+function setupStudy(){
+  const tipo = document.getElementById('studyTipoFilter');
+  const grupo = document.getElementById('studyGroupFilter');
+  const scope = document.getElementById('studyScopeFilter');
+  tipo?.addEventListener('change', () => { StudyState.filter.tipo = tipo.value; buildStudyQueue(); });
+  grupo?.addEventListener('change', () => { StudyState.filter.grupo = grupo.value; buildStudyQueue(); });
+  scope?.addEventListener('change', () => { StudyState.filter.scope = scope.value; buildStudyQueue(); });
+  document.getElementById('studyShuffleBtn')?.addEventListener('click', () => buildStudyQueue(true));
+  document.getElementById('studyResetBtn')?.addEventListener('click', async () => {
+    const items = studyFilteredItems();
+    if (!items.length) return;
+    if (!confirm(`¿Reiniciar el progreso (favorito se mantiene) de ${items.length} microorganismo(s) según el filtro actual?`)) return;
+    items.forEach(b => { b.estado = 'nuevo'; });
+    await saveToStorage();
+    buildStudyQueue();
+    refreshAllViews();
+  });
+}
+
+function shuffleArray(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function studyFilteredItems(){
+  const f = StudyState.filter;
+  return AppState.bacteria.filter(b => {
+    if (f.tipo !== 'ALL' && (b.tipo || 'bacteria') !== f.tipo) return false;
+    if (f.grupo !== 'ALL' && b.grupo !== f.grupo) return false;
+    if (f.scope === 'FAV' && !b.favorito) return false;
+    if (f.scope === 'REVIEW' && b.estado !== 'repasar') return false;
+    if (f.scope === 'NEW' && b.estado !== 'nuevo') return false;
+    return true;
+  });
+}
+
+function buildStudyQueue(forceShuffle){
+  const items = studyFilteredItems();
+  StudyState.queue = shuffleArray(items);
+  StudyState.index = 0;
+  StudyState.revealed = false;
+  StudyState.known = 0;
+  StudyState.review = 0;
+  renderStudyCard();
+}
+
+function renderStudyCard(){
+  const host = document.getElementById('studyHost');
+  if (!host) return;
+  const total = StudyState.queue.length;
+
+  if (!total){
+    host.innerHTML = emptyState('🎯', 'No hay microorganismos para este filtro', 'Cambiá el tipo, grupo o alcance elegido arriba.');
+    return;
+  }
+
+  if (StudyState.index >= total){
+    host.innerHTML = `
+      <div class="study-summary">
+        <div class="ss-big">🏁</div>
+        <h2>¡Terminaste esta ronda!</h2>
+        <p class="page-subtitle" style="margin:.5rem auto 1.5rem;">✅ ${StudyState.known} sabías &nbsp;·&nbsp; 🔁 ${StudyState.review} a repasar &nbsp;·&nbsp; de ${total} en total.</p>
+        <div class="study-actions">
+          <button class="btn gold" onclick="buildStudyQueue(true)">🔀 Repasar de nuevo (barajado)</button>
+          <button class="btn" onclick="StudyState.filter.scope='REVIEW'; document.getElementById('studyScopeFilter').value='REVIEW'; buildStudyQueue(true);">🔁 Repasar solo las que fallé</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const b = StudyState.queue[StudyState.index];
+  const rb = ribbonBadge(b);
+  const progressPct = Math.round((StudyState.index / total) * 100);
+
+  host.innerHTML = `
+    <div class="study-progress-bar"><div class="study-progress-fill" style="width:${progressPct}%;"></div></div>
+    <div class="study-progress-label">
+      <span>Tarjeta ${StudyState.index + 1} / ${total}</span>
+      <span>✅ ${StudyState.known} sabidas</span>
+      <span>🔁 ${StudyState.review} a repasar</span>
+    </div>
+    <div class="study-card">
+      ${!StudyState.revealed ? `
+        <span class="badge-type ${rb.cls}">${tipoIcon(b.tipo)} ${escapeHTML(rb.text)}</span>
+        <div class="study-card-name">${escapeHTML(b.name)}</div>
+        <div class="study-card-hint">${escapeHTML(b.grupo || '')}</div>
+        <p class="study-card-hint">Pensá el cuadro completo (morfología, hábitat, clínica, tratamiento…) y después revelá.</p>
+        <button class="btn gold" onclick="studyReveal()">👁️ Revelar cuadro</button>
+      ` : `
+        <div class="study-reveal" style="width:100%; text-align:left;">
+          ${bacteriaSheetHTML(b, { hideStudyActions:true })}
+        </div>
+      `}
+    </div>
+    ${StudyState.revealed ? `
+      <div class="study-actions">
+        <button class="btn study-review" onclick="studyAnswer('repasar')">🔁 A repasar</button>
+        <button class="btn study-know" onclick="studyAnswer('sabido')">✅ Lo sé</button>
+      </div>` : ''}
+  `;
+}
+
+function studyReveal(){
+  StudyState.revealed = true;
+  renderStudyCard();
+}
+
+async function studyAnswer(estado){
+  const b = StudyState.queue[StudyState.index];
+  if (b){
+    b.estado = estado;
+    if (estado === 'sabido') StudyState.known++; else StudyState.review++;
+    await saveToStorage();
+  }
+  StudyState.index++;
+  StudyState.revealed = false;
+  renderStudyCard();
+  updateStats();
+}
+
+/* ==========================================================================
+   10. IMPORTADOR DE MÓDULOS HTML
+   ========================================================================== */
+function setupImporter(){
+  document.getElementById('btnImportModule')?.addEventListener('click', async () => {
+    const raw = document.getElementById('importCodeInput')?.value.trim();
+    const feedback = document.getElementById('importFeedback');
+    if (!raw){
+      feedback.style.color = '#b91c1c';
+      feedback.textContent = 'Pegá al menos un módulo de bacteria antes de importar.';
+      return;
+    }
+
+    try{
+      const template = document.createElement('template');
+      template.innerHTML = raw;
+      const modules = template.content.querySelectorAll('[data-module-type="bacteria"], [data-module-type="virus"], [data-module-type="parasito"], [data-module-type="hongo"]');
+
+      if (!modules.length){
+        feedback.style.color = '#b91c1c';
+        feedback.textContent = 'No se encontró ningún elemento con data-module-type="bacteria|virus|parasito|hongo".';
+        return;
+      }
+
+      let count = 0, rejected = 0;
+      modules.forEach(mod => {
+        const name = mod.getAttribute('data-name');
+        if (!name){ rejected++; return; }
+
+        const tipo = mod.getAttribute('data-module-type') || 'bacteria';
+        const id = mod.getAttribute('data-id') || (tipo + '-' + slugify(name));
+        const item = {
+          id, name, tipo,
+          grupo: mod.getAttribute('data-grupo') || '',
+          gram: mod.getAttribute('data-gram') || '',
+          image: mod.getAttribute('data-image') || ''
+        };
+        FIELD_DEFS.forEach(f => {
+          const el = mod.querySelector(`[data-field="${f.key}"]`);
+          item[f.key] = el ? sanitizeHTML(el.innerHTML) : '';
+        });
+
+        const idx = AppState.bacteria.findIndex(b => b.id === id);
+        if (idx >= 0) AppState.bacteria[idx] = normalizeItem({ ...AppState.bacteria[idx], ...item, isDemo:false });
+        else AppState.bacteria.push(normalizeItem(item));
+        count++;
+      });
+
+      await saveToStorage();
+      refreshAllViews();
+
+      feedback.style.color = '#15803d';
+      feedback.textContent = `Importación completada: ${count} bacteria(s) importadas/actualizadas (${rejected} rechazadas).`;
+      const input = document.getElementById('importCodeInput');
+      if (input) input.value = '';
+
+    }catch(err){
+      feedback.style.color = '#b91c1c';
+      feedback.textContent = 'Error procesando el HTML ingresado: ' + err.message;
+      console.error(err);
+    }
+  });
+
+  document.getElementById('btnExportLibrary')?.addEventListener('click', exportLibraryJSON);
+
+  document.getElementById('libraryJsonInput')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (file) importLibraryJSON(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('btnClearLibrary')?.addEventListener('click', async () => {
+    const confirmed = confirm('¿Estás seguro de que deseas eliminar todo el contenido personalizado y restablecer los datos de demostración? Esta acción no se puede deshacer.');
+    if (!confirmed) return;
+    AppState.bacteria = cloneData(DEMO_BACTERIA);
+    await saveToStorage();
+    refreshAllViews();
+    alert('Catálogo restablecido.');
+  });
+}
+
+/* ==========================================================================
+   11. GESTIÓN (borrar y EDITAR bacterias)
+   ========================================================================== */
+const ManageState = { search:'', editingId:null };
+
+function setupManagement(){
+  document.getElementById('manageSearchInput')?.addEventListener('input', (e) => {
+    ManageState.search = e.target.value;
+    renderManageList();
+  });
+}
+
+function renderManageList(){
+  const container = document.getElementById('manageBacteriaList');
+  if (!container) return;
+  
+  if (ManageState.editingId){
+    renderEditForm();
+    return;
+  }
+  
+  const term = normalizeText(ManageState.search);
+  let list = AppState.bacteria.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  if (term) list = list.filter(b => normalizeText([b.name, b.grupo].join(' ')).includes(term));
+
+  if (!list.length){
+    container.innerHTML = manageEmpty('🧫', 'No hay bacterias que coincidan.');
+    return;
+  }
+
+  container.innerHTML = list.map(b => {
+    const rb = ribbonBadge(b);
+    return `
+    <div class="manage-row">
+      <div class="manage-row-main">
+        <div class="manage-row-title">${tipoIcon(b.tipo)} ${escapeHTML(b.name)} ${b.favorito ? '⭐' : ''}</div>
+        <div class="manage-row-meta">
+          <span class="badge-type ${rb.cls}">${escapeHTML(rb.text)}</span>
+          <span>${escapeHTML(b.grupo || 'Sin grupo')}</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:.5rem;">
+        <button class="btn" style="font-size:.8rem; padding:.4rem .6rem;" onclick="startEditBacteria('${b.id}')">✏️ Editar</button>
+        <button class="manage-del-btn" onclick="deleteBacteriaManaged('${b.id}')">🗑 Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startEditBacteria(id){
+  ManageState.editingId = id;
+  renderManageList();
+}
+
+function renderEditForm(){
+  const container = document.getElementById('manageBacteriaList');
+  if (!container) return;
+  
+  const b = AppState.bacteria.find(x => x.id === ManageState.editingId);
+  if (!b) return;
+  
+  const rb = ribbonBadge(b);
+  
+  let html = `
+    <div class="sheet-view" style="padding: 1.5rem;">
+      <div style="margin-bottom: 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+        <div>
+          <h2 style="font-size:1.4rem; margin-bottom:.3rem;">${escapeHTML(b.name)}</h2>
+          <span class="badge-type ${rb.cls}">${tipoIcon(b.tipo)} ${escapeHTML(rb.text)}</span>
+        </div>
+        <button class="btn" onclick="ManageState.editingId=null; renderManageList();">← Volver</button>
+      </div>
+      
+      <div class="section-block" style="margin-bottom:1rem;">
+        <h4>📋 Información General</h4>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-top:1rem;">
+          <div>
+            <label style="font-weight:600; font-size:.85rem;">Nombre</label>
+            <input type="text" id="editName" class="btn" value="${escapeHTML(b.name)}" style="width:100%; margin-top:.3rem;">
+          </div>
+          <div>
+            <label style="font-weight:600; font-size:.85rem;">Tipo</label>
+            <select id="editTipo" class="btn" style="width:100%; margin-top:.3rem;">
+              <option value="bacteria" ${b.tipo === 'bacteria' ? 'selected' : ''}>🧫 Bacteria</option>
+              <option value="virus" ${b.tipo === 'virus' ? 'selected' : ''}>🦠 Virus</option>
+              <option value="parasito" ${b.tipo === 'parasito' ? 'selected' : ''}>🪱 Parásito</option>
+              <option value="hongo" ${b.tipo === 'hongo' ? 'selected' : ''}>🍄 Hongo</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:600; font-size:.85rem;">Grupo</label>
+            <input type="text" id="editGrupo" class="btn" value="${escapeHTML(b.grupo || '')}" style="width:100%; margin-top:.3rem;">
+          </div>
+          <div>
+            <label style="font-weight:600; font-size:.85rem;">Gram</label>
+            <select id="editGram" class="btn" style="width:100%; margin-top:.3rem;">
+              <option value="">Sin especificar</option>
+              <option value="Gram positivo" ${b.gram === 'Gram positivo' ? 'selected' : ''}>Gram positivo</option>
+              <option value="Gram negativo" ${b.gram === 'Gram negativo' ? 'selected' : ''}>Gram negativo</option>
+              <option value="Ácido-alcohol resistente" ${b.gram === 'Ácido-alcohol resistente' ? 'selected' : ''}>Ácido-alcohol resistente</option>
+              <option value="Variable" ${b.gram === 'Variable' ? 'selected' : ''}>Variable</option>
+              <option value="No aplica" ${b.gram === 'No aplica' ? 'selected' : ''}>No aplica</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section-block" style="margin-bottom:1rem;">
+        <h4>📝 Campos de Información</h4>
+        <div id="fieldsContainer" style="display:flex; flex-direction:column; gap:1.2rem; margin-top:1rem;">
+  `;
+  
+  FIELD_DEFS.forEach(f => {
+    const value = b[f.key] || '';
+    html += `
+      <div style="border-left:3px solid #16a34a; padding-left:1rem;">
+        <label style="font-weight:600; font-size:.9rem; display:flex; align-items:center; gap:.4rem;">
+          ${f.icon} ${f.label}
+          <button type="button" class="btn" style="margin-left:auto; padding:.3rem .5rem; font-size:.8rem;" onclick="deleteBacteriaField('${f.key}')">Borrar este campo</button>
+        </label>
+        <textarea 
+          id="field_${f.key}" 
+          class="btn code-input" 
+          style="margin-top:.5rem; min-height:100px; width:100%;"
+          placeholder="Ingresá la información..."
+        >${escapeHTML(value)}</textarea>
+      </div>
+    `;
+  });
+  
+  html += `
+        </div>
+      </div>
+      
+      <div class="section-block" style="margin-bottom:1rem;">
+        <h4>➕ Agregar Campo Personalizado</h4>
+        <div style="display:flex; gap:.5rem; margin-top:1rem; flex-wrap:wrap;">
+          <input type="text" id="newFieldName" class="btn" placeholder="Nombre del campo (ej: Reservorio)" style="flex:1; min-width:200px;">
+          <input type="text" id="newFieldIcon" class="btn" placeholder="Emoji (ej: 🏥)" style="width:60px;">
+          <button class="btn gold" onclick="addCustomField()">Agregar campo</button>
+        </div>
+        <div id="customFieldsContainer" style="margin-top:1rem;">
+  `;
+  
+  // Mostrar campos personalizados (campos que no están en FIELD_DEFS)
+  const standardKeys = FIELD_DEFS.map(f => f.key);
+  Object.keys(b).forEach(key => {
+    if (!standardKeys.includes(key) && !['id', 'name', 'tipo', 'grupo', 'gram', 'image', 'favorito', 'estado', 'isDemo'].includes(key)) {
+      const value = b[key] || '';
+      html += `
+        <div style="border-left:3px solid #f0c66b; padding-left:1rem; margin-bottom:1rem;">
+          <label style="font-weight:600; font-size:.9rem; display:flex; align-items:center; gap:.4rem;">
+            ⭐ ${escapeHTML(key)}
+            <button type="button" class="btn" style="margin-left:auto; padding:.3rem .5rem; font-size:.8rem;" onclick="deleteCustomField('${key}')">Borrar</button>
+          </label>
+          <textarea 
+            id="custom_${key}" 
+            class="btn code-input" 
+            style="margin-top:.5rem; min-height:100px; width:100%;"
+            placeholder="Contenido del campo..."
+          >${escapeHTML(value)}</textarea>
+        </div>
+      `;
+    }
+  });
+  
+  html += `
+        </div>
+      </div>
+      
+      <div class="controls-bar">
+        <button class="btn gold" onclick="saveEditedBacteria()">💾 Guardar cambios</button>
+        <button class="btn" onclick="ManageState.editingId=null; renderManageList();">Cancelar</button>
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = html;
+}
+
+function addCustomField(){
+  const name = document.getElementById('newFieldName')?.value.trim();
+  const icon = document.getElementById('newFieldIcon')?.value.trim() || '⭐';
+  
+  if (!name){
+    alert('Por favor ingresá un nombre para el campo');
+    return;
+  }
+  
+  if (ManageState.editingId){
+    const b = AppState.bacteria.find(x => x.id === ManageState.editingId);
+    if (b){
+      b[name] = '';
+      renderEditForm();
+      document.getElementById(`custom_${name}`)?.focus();
+    }
+  }
+  document.getElementById('newFieldName').value = '';
+  document.getElementById('newFieldIcon').value = '';
+}
+
+function deleteCustomField(key){
+  if (!confirm(`¿Borrar el campo "${key}"?`)) return;
+  if (ManageState.editingId){
+    const b = AppState.bacteria.find(x => x.id === ManageState.editingId);
+    if (b) delete b[key];
+    renderEditForm();
+  }
+}
+
+function deleteBacteriaField(key){
+  if (!confirm(`¿Borrar el campo "${key}"? Se eliminarán todos sus datos.`)) return;
+  if (ManageState.editingId){
+    const b = AppState.bacteria.find(x => x.id === ManageState.editingId);
+    if (b) b[key] = '';
+    renderEditForm();
+  }
+}
+
+async function saveEditedBacteria(){
+  const b = AppState.bacteria.find(x => x.id === ManageState.editingId);
+  if (!b) return;
+  
+  // Guardar información general
+  b.name = document.getElementById('editName')?.value.trim() || b.name;
+  b.tipo = document.getElementById('editTipo')?.value || 'bacteria';
+  b.grupo = document.getElementById('editGrupo')?.value.trim() || '';
+  b.gram = document.getElementById('editGram')?.value || '';
+  
+  // Guardar campos estándar
+  FIELD_DEFS.forEach(f => {
+    b[f.key] = document.getElementById(`field_${f.key}`)?.value || '';
+  });
+  
+  // Guardar campos personalizados
+  const standardKeys = FIELD_DEFS.map(f => f.key);
+  Object.keys(b).forEach(key => {
+    if (!standardKeys.includes(key) && !['id', 'name', 'tipo', 'grupo', 'gram', 'image', 'favorito', 'estado', 'isDemo'].includes(key)) {
+      const textarea = document.getElementById(`custom_${key}`);
+      if (textarea) b[key] = textarea.value || '';
+    }
+  });
+  
+  b.isDemo = false;
+  await saveToStorage();
+  refreshAllViews();
+  ManageState.editingId = null;
+  renderManageList();
+  alert('✅ Cambios guardados correctamente');
+}
+
+async function deleteBacteriaManaged(id){
+  const b = AppState.bacteria.find(x => x.id === id);
+  if (!b) return;
+  if (!confirm(`¿Eliminar "${b.name}"? Esta acción no se puede deshacer.`)) return;
+  AppState.bacteria = AppState.bacteria.filter(x => x.id !== id);
+  await saveToStorage();
+  refreshAllViews();
+}
+
+/* ==========================================================================
+   12. ACTUALIZAR TODA LA INTERFAZ
+   ========================================================================== */
+function refreshAllViews(){
+  updateStats();
+  populateGroupSelect(document.getElementById('bacteriaGroupFilter'));
+  populateGroupSelect(document.getElementById('slideGroupFilter'));
+  populateGroupSelect(document.getElementById('compareGroupFilter'));
+  populateGroupSelect(document.getElementById('studyGroupFilter'));
+  renderBacterias();
+  renderSlideStage();
+  renderManageList();
+  renderCompareAll();
+  if (StudyState.queue.length) renderStudyCard();
+}
+
+/* ==========================================================================
+   13. INICIALIZACIÓN
+   ========================================================================== */
+async function initApp(){
+  await loadFromStorage();
+  setupNavigation();
+  setupHeaderSearch();
+  setupBacteriaFilters();
+  setupSlideFilters();
+  setupSlideSwipe();
+  setupImporter();
+  setupManagement();
+  setupCompare();
+  setupStudy();
+  setupConceptos();
+  setupExamen();
+  refreshAllViews();
+  buildStudyQueue();
+  buildExam();
+  console.log('Resumen PAD · Cuadros Sinópticos iniciado correctamente. Almacenamiento en la nube:', hasCloudStorage);
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
