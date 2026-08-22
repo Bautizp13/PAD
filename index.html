@@ -369,7 +369,120 @@ table.compare-table .compare-empty-cell{ color:var(--text-secondary); }
 ::-webkit-scrollbar{ width:10px; height:10px; }
 ::-webkit-scrollbar-track{ background:transparent; }
 ::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:6px; }
+/* ==========================================================================
+   FLASHCARDS STYLES
+   ========================================================================== */
+.flashcard-preview {
+  background: white;
+  border: 2px solid #16a34a;
+  border-radius: 8px;
+  padding: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  font-size: 0.9rem;
+  page-break-inside: avoid;
+}
 
+.flashcard-preview .fc-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #15803d;
+  border-bottom: 2px solid #16a34a;
+  padding-bottom: 0.5rem;
+}
+
+.flashcard-preview .fc-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background: #e6f7ea;
+  color: #15803d;
+  width: fit-content;
+}
+
+.flashcard-preview .fc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.flashcard-preview .fc-section-label {
+  font-weight: 600;
+  color: #15803d;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.flashcard-preview .fc-section-content {
+  color: #333;
+  padding-left: 0.5rem;
+  border-left: 2px solid #d7ecdc;
+}
+
+.fc-editor-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.fc-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fc-editor-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.fc-editor-field {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.fc-editor-field label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #15803d;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fc-editor-field textarea {
+  font-size: 0.9rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.4rem;
+  min-height: 60px;
+  resize: vertical;
+  font-family: var(--font-body);
+}
+
+@media print {
+  .flashcard-a5 {
+    width: 148mm;
+    height: 210mm;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+}
 /* ==========================================================================
    7. RESPONSIVE
    ========================================================================== */
@@ -423,8 +536,10 @@ table.compare-table .compare-empty-cell{ color:var(--text-secondary); }
 
       <div class="nav-section-label">Estudiar</div>
       <div class="nav-item" data-target="sec-estudiar"><span class="nav-icon">🎯</span><span class="nav-text">Modo estudio</span></div>
-      <div class="nav-item" data-target="sec-comparar"><span class="nav-icon">⚖️</span><span class="nav-text">Comparar</span><span class="nav-count" id="navCompareCount" style="display:none;"></span></div>
-      <div class="nav-item" data-target="sec-conceptos"><span class="nav-icon">📚</span><span class="nav-text">Conceptos</span></div>
+<div class="nav-item" data-target="sec-comparar"><span class="nav-icon">⚖️</span><span class="nav-text">Comparar</span><span class="nav-count" id="navCompareCount" style="display:none;"></span></div>
+<div class="nav-item" data-target="sec-flashcards"><span class="nav-icon">🎴</span><span class="nav-text">Flashcards PDF</span></div>
+<div class="nav-item" data-target="sec-conceptos">
+       <div class="nav-item" data-target="sec-conceptos"><span class="nav-icon">📚</span><span class="nav-text">Conceptos</span></div>
       <div class="nav-item" data-target="sec-examen"><span class="nav-icon">📝</span><span class="nav-text">Examen</span></div>
 
       <div class="nav-section-label">Herramientas</div>
@@ -620,7 +735,62 @@ table.compare-table .compare-empty-cell{ color:var(--text-secondary); }
 
         <div id="compareTableHost"></div>
       </section>
+<!-- FLASHCARDS PDF -->
+<section id="sec-flashcards" class="section-view">
+  <div class="eyebrow">Impresión</div>
+  <h1 class="page-title">Crear Flashcards PDF</h1>
+  <div class="gold-rule"></div>
+  <p class="page-subtitle">Seleccioná microorganismos, editá y resumí la información, luego descargá como PDF en formato A5 (2 fichas por página A4). Ideal para estudiar impreso.</p>
 
+  <div id="flashcardsStage">
+    <!-- Paso 1: Seleccionar microorganismos -->
+    <div id="fcStep1" class="section-view active">
+      <h2 class="section-heading">Paso 1: Seleccionar microorganismos</h2>
+      <div class="manage-toolbar">
+        <input type="text" id="fcSearchInput" class="btn" placeholder="Buscar por nombre…">
+        <select id="fcTipoFilter" class="btn">
+          <option value="ALL">Todos los tipos</option>
+          <option value="bacteria">🧫 Bacterias</option>
+          <option value="virus">🦠 Virus</option>
+          <option value="parasito">🪱 Parásitos</option>
+          <option value="hongo">🍄 Hongos</option>
+        </select>
+        <select id="fcGroupFilter" class="btn"><option value="ALL">Todos los grupos</option></select>
+      </div>
+      <div class="compare-pick-list" id="fcPickList"></div>
+      <div class="controls-bar" style="margin-top:1.5rem;">
+        <span id="fcSelectedCount" style="color:#666;">Seleccionados: 0</span>
+        <button class="btn gold" id="fcGoToEditorBtn" style="margin-left:auto;">Ir al editor →</button>
+      </div>
+    </div>
+
+    <!-- Paso 2: Editor de flashcards -->
+    <div id="fcStep2" class="section-view" style="display:none;">
+      <h2 class="section-heading">Paso 2: Editar y resumir información</h2>
+      <p style="color:#666; margin-bottom:1.5rem;">Editá cada campo para resumir o eliminar información. Los campos vacíos no aparecerán en el PDF.</p>
+      
+      <div class="controls-bar">
+        <button class="btn" id="fcGoBackBtn">← Volver a seleccionar</button>
+        <button class="btn gold" id="fcGoToPreviewBtn" style="margin-left:auto;">Ver vista previa →</button>
+      </div>
+
+      <div id="fcEditorsContainer" style="display:flex; flex-direction:column; gap:2rem; margin:1.5rem 0;"></div>
+    </div>
+
+    <!-- Paso 3: Vista previa y descargar -->
+    <div id="fcStep3" class="section-view" style="display:none;">
+      <h2 class="section-heading">Paso 3: Vista previa y descargar</h2>
+      <p style="color:#666; margin-bottom:1.5rem;">Las flashcards se mostrarán en tamaño A5 (2 por página A4 en el PDF).</p>
+      
+      <div class="controls-bar">
+        <button class="btn" id="fcGoBackFromPreviewBtn">← Editar de nuevo</button>
+        <button class="btn gold" id="fcDownloadPdfBtn" style="margin-left:auto;">📥 Descargar PDF</button>
+      </div>
+
+      <div id="fcPreviewContainer" style="margin-top:2rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:2rem;"></div>
+    </div>
+  </div>
+</section>
       <!-- AGREGAR CONTENIDO -->
       <section id="sec-materiales" class="section-view">
         <div class="eyebrow">Herramientas</div>
@@ -2414,7 +2584,352 @@ function setupImporter(){
    11. GESTIÓN (borrar y EDITAR bacterias)
    ========================================================================== */
 const ManageState = { search:'', editingId:null };
+/* ==========================================================================
+   FLASHCARDS PDF SECTION
+   ========================================================================== */
+const FlashcardsState = {
+  selected: [],
+  edited: {},
+  filter: { search: '', tipo: 'ALL', grupo: 'ALL' }
+};
 
+function setupFlashcards() {
+  const search = document.getElementById('fcSearchInput');
+  const tipo = document.getElementById('fcTipoFilter');
+  const grupo = document.getElementById('fcGroupFilter');
+  
+  search?.addEventListener('input', () => { FlashcardsState.filter.search = search.value; renderFcPickList(); });
+  tipo?.addEventListener('change', () => { FlashcardsState.filter.tipo = tipo.value; renderFcPickList(); });
+  grupo?.addEventListener('change', () => { FlashcardsState.filter.grupo = grupo.value; renderFcPickList(); });
+  
+  document.getElementById('fcGoToEditorBtn')?.addEventListener('click', goToFcEditor);
+  document.getElementById('fcGoBackBtn')?.addEventListener('click', goToFcStep1);
+  document.getElementById('fcGoToPreviewBtn')?.addEventListener('click', goToFcPreview);
+  document.getElementById('fcGoBackFromPreviewBtn')?.addEventListener('click', goToFcEditor);
+  document.getElementById('fcDownloadPdfBtn')?.addEventListener('click', downloadFlashcardsPdf);
+}
+
+function fcToggleSelect(id) {
+  const idx = FlashcardsState.selected.indexOf(id);
+  if (idx >= 0) {
+    FlashcardsState.selected.splice(idx, 1);
+  } else {
+    FlashcardsState.selected.push(id);
+  }
+  renderFcPickList();
+  updateFcSelectedCount();
+}
+
+function renderFcPickList() {
+  const host = document.getElementById('fcPickList');
+  if (!host) return;
+  
+  const list = getFilteredBacteria({
+    search: FlashcardsState.filter.search,
+    grupo: FlashcardsState.filter.grupo,
+    tipo: FlashcardsState.filter.tipo,
+    gram: 'ALL'
+  });
+  
+  if (!list.length) {
+    host.innerHTML = manageEmpty('🧫', 'No hay microorganismos que coincidan con el filtro.');
+    return;
+  }
+  
+  host.innerHTML = list.map(b => {
+    const checked = FlashcardsState.selected.includes(b.id);
+    return `
+    <label class="compare-pick-row ${checked ? 'checked' : ''}">
+      <input type="checkbox" ${checked ? 'checked' : ''} onchange="fcToggleSelect('${b.id}')">
+      <span>${tipoIcon(b.tipo)}</span>
+      <span>
+        <div class="compare-pick-title">${escapeHTML(b.name)}</div>
+        <div class="compare-pick-meta">${escapeHTML(b.grupo || 'Sin grupo')}</div>
+      </span>
+    </label>`;
+  }).join('');
+}
+
+function updateFcSelectedCount() {
+  const count = document.getElementById('fcSelectedCount');
+  if (count) count.textContent = `Seleccionados: ${FlashcardsState.selected.length}`;
+}
+
+function goToFcEditor() {
+  if (!FlashcardsState.selected.length) {
+    alert('Seleccioná al menos un microorganismo');
+    return;
+  }
+  
+  FlashcardsState.selected.forEach(id => {
+    if (!FlashcardsState.edited[id]) {
+      const b = AppState.bacteria.find(x => x.id === id);
+      if (b) {
+        FlashcardsState.edited[id] = cloneData(b);
+      }
+    }
+  });
+  
+  renderFcEditors();
+  showFcStep(2);
+}
+
+function renderFcEditors() {
+  const container = document.getElementById('fcEditorsContainer');
+  if (!container) return;
+  
+  container.innerHTML = FlashcardsState.selected.map(id => {
+    const b = AppState.bacteria.find(x => x.id === id);
+    const edited = FlashcardsState.edited[id];
+    if (!b || !edited) return '';
+    
+    const rb = ribbonBadge(b);
+    
+    return `
+    <div class="fc-editor-card">
+      <div class="fc-editor-header">
+        <div>
+          <div class="fc-editor-title">${escapeHTML(b.name)}</div>
+          <div style="font-size:0.85rem; color:#666;">${escapeHTML(b.grupo || 'Sin grupo')}</div>
+        </div>
+        <span class="badge-type ${rb.cls}">${tipoIcon(b.tipo)} ${escapeHTML(rb.text)}</span>
+      </div>
+      
+      ${FIELD_DEFS.map(f => `
+        <div class="fc-editor-field">
+          <label>${f.icon} ${f.label}</label>
+          <textarea id="fc_${id}_${f.key}" placeholder="Dejá en blanco para no mostrar este campo en el PDF">${escapeHTML(edited[f.key] || '')}</textarea>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('');
+  
+  FlashcardsState.selected.forEach(id => {
+    FIELD_DEFS.forEach(f => {
+      const textarea = document.getElementById(`fc_${id}_${f.key}`);
+      if (textarea) {
+        textarea.addEventListener('input', (e) => {
+          if (FlashcardsState.edited[id]) {
+            FlashcardsState.edited[id][f.key] = e.target.value;
+          }
+        });
+      }
+    });
+  });
+}
+
+function goToFcPreview() {
+  FlashcardsState.selected.forEach(id => {
+    FIELD_DEFS.forEach(f => {
+      const textarea = document.getElementById(`fc_${id}_${f.key}`);
+      if (textarea && FlashcardsState.edited[id]) {
+        FlashcardsState.edited[id][f.key] = textarea.value;
+      }
+    });
+  });
+  
+  renderFcPreview();
+  showFcStep(3);
+}
+
+function renderFcPreview() {
+  const container = document.getElementById('fcPreviewContainer');
+  if (!container) return;
+  
+  container.innerHTML = FlashcardsState.selected.map(id => {
+    const original = AppState.bacteria.find(x => x.id === id);
+    const edited = FlashcardsState.edited[id];
+    if (!original || !edited) return '';
+    
+    const rb = ribbonBadge(original);
+    const fields = FIELD_DEFS.filter(f => edited[f.key] && String(edited[f.key]).trim());
+    
+    return `
+    <div class="flashcard-preview">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+        <div class="fc-title">${escapeHTML(original.name)}</div>
+        <span class="fc-badge">${tipoIcon(original.tipo)} ${escapeHTML(rb.text)}</span>
+      </div>
+      ${original.grupo ? `<div style="font-size:0.8rem; color:#666; font-style:italic;">${escapeHTML(original.grupo)}</div>` : ''}
+      
+      ${fields.map(f => `
+        <div class="fc-section">
+          <div class="fc-section-label">${f.icon} ${f.label}</div>
+          <div class="fc-section-content">${sanitizeHTML(edited[f.key])}</div>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('');
+}
+
+function goToFcStep1() {
+  showFcStep(1);
+}
+
+function showFcStep(step) {
+  document.getElementById('fcStep1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('fcStep2').style.display = step === 2 ? 'block' : 'none';
+  document.getElementById('fcStep3').style.display = step === 3 ? 'block' : 'none';
+}
+
+function downloadFlashcardsPdf() {
+  if (!FlashcardsState.selected.length) {
+    alert('No hay microorganismos seleccionados');
+    return;
+  }
+  
+  let pdfHtml = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Flashcards - Cuadros Sinópticos</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Inter', 'Segoe UI', sans-serif;
+          background: #f5f5f5;
+        }
+        .page {
+          width: 210mm;
+          height: 297mm;
+          background: white;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0mm;
+          page-break-after: always;
+          break-after: page;
+          margin: 0;
+          padding: 0;
+        }
+        .flashcard {
+          width: 105mm;
+          height: 148.5mm;
+          padding: 12mm;
+          border: 1px solid #e0e0e0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+          background: white;
+          font-size: 9pt;
+          line-height: 1.3;
+          overflow: hidden;
+        }
+        .fc-title {
+          font-size: 12pt;
+          font-weight: 700;
+          color: #15803d;
+          border-bottom: 2px solid #16a34a;
+          padding-bottom: 0.4rem;
+          margin-bottom: 0.3rem;
+        }
+        .fc-badge {
+          display: inline-block;
+          font-size: 7pt;
+          font-weight: 600;
+          padding: 0.2rem 0.4rem;
+          border-radius: 2px;
+          background: #e6f7ea;
+          color: #15803d;
+          width: fit-content;
+        }
+        .fc-section {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+        }
+        .fc-section-label {
+          font-weight: 600;
+          color: #15803d;
+          font-size: 7pt;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-top: 0.3rem;
+        }
+        .fc-section-content {
+          color: #333;
+          padding-left: 0.4rem;
+          border-left: 2px solid #d7ecdc;
+          font-size: 8pt;
+        }
+        .fc-grupo {
+          font-size: 7pt;
+          color: #666;
+          font-style: italic;
+          margin-bottom: 0.3rem;
+        }
+        @media print {
+          body { margin: 0; padding: 0; background: white; }
+          .page { margin: 0; padding: 0; break-after: page; }
+        }
+      </style>
+    </head>
+    <body>
+  `;
+  
+  const items = FlashcardsState.selected.map(id => ({
+    original: AppState.bacteria.find(x => x.id === id),
+    edited: FlashcardsState.edited[id]
+  })).filter(item => item.original && item.edited);
+  
+  for (let i = 0; i < items.length; i += 2) {
+    pdfHtml += '<div class="page">';
+    
+    const item1 = items[i];
+    const rb1 = ribbonBadge(item1.original);
+    const fields1 = FIELD_DEFS.filter(f => item1.edited[f.key] && String(item1.edited[f.key]).trim());
+    
+    pdfHtml += `
+      <div class="flashcard">
+        <div class="fc-title">${escapeHTML(item1.original.name)}</div>
+        <span class="fc-badge">${tipoIcon(item1.original.tipo)} ${escapeHTML(rb1.text)}</span>
+        ${item1.original.grupo ? `<div class="fc-grupo">${escapeHTML(item1.original.grupo)}</div>` : ''}
+        ${fields1.map(f => `
+          <div class="fc-section">
+            <div class="fc-section-label">${f.icon} ${f.label}</div>
+            <div class="fc-section-content">${item1.edited[f.key]}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    if (i + 1 < items.length) {
+      const item2 = items[i + 1];
+      const rb2 = ribbonBadge(item2.original);
+      const fields2 = FIELD_DEFS.filter(f => item2.edited[f.key] && String(item2.edited[f.key]).trim());
+      
+      pdfHtml += `
+        <div class="flashcard">
+          <div class="fc-title">${escapeHTML(item2.original.name)}</div>
+          <span class="fc-badge">${tipoIcon(item2.original.tipo)} ${escapeHTML(rb2.text)}</span>
+          ${item2.original.grupo ? `<div class="fc-grupo">${escapeHTML(item2.original.grupo)}</div>` : ''}
+          ${fields2.map(f => `
+            <div class="fc-section">
+              <div class="fc-section-label">${f.icon} ${f.label}</div>
+              <div class="fc-section-content">${item2.edited[f.key]}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      pdfHtml += '<div class="flashcard" style="opacity: 0;"></div>';
+    }
+    
+    pdfHtml += '</div>';
+  }
+  
+  pdfHtml += '</body></html>';
+  
+  const opt = {
+    margin: 0,
+    filename: 'flashcards-microorganismos.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4', compress: true }
+  };
+  
+  html2pdf().set(opt).from(pdfHtml).save();
+}
 function setupManagement(){
   document.getElementById('manageSearchInput')?.addEventListener('input', (e) => {
     ManageState.search = e.target.value;
@@ -2697,6 +3212,7 @@ async function initApp(){
   setupBacteriaFilters();
   setupSlideFilters();
   setupSlideSwipe();
+   setupFlashcards();
   setupImporter();
   setupManagement();
   setupCompare();
