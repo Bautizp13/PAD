@@ -626,7 +626,14 @@ table.compare-table .compare-empty-cell{ color:var(--text-secondary); }
         <div class="eyebrow">Herramientas</div>
         <h1 class="page-title">Agregar contenido</h1>
         <div class="gold-rule"></div>
-        <p class="hint-box">Pegá acá el código HTML de uno o varios microorganismos generado con el <strong>prompt maestro</strong> (cada uno es un bloque <code>&lt;article data-module-type="..."&gt;</code>, con <code>data-module-type</code> igual a <code>bacteria</code>, <code>virus</code>, <code>parasito</code> o <code>hongo</code>). Podés pegar varios bloques juntos para importar varios de una sola vez. Si uno ya existe (mismo nombre y tipo), se actualiza en vez de duplicarse.</p>
+        <p class="hint-box">🔗 <strong>Método recomendado — GitHub:</strong> generá el archivo con el <strong>prompt maestro</strong> (ver más abajo), guardalo como <code>.html</code> dentro de la carpeta <code>data/modulos/</code> de este repositorio y subilo a GitHub (commit directo o pull request). Al recargar la página, el sitio lo detecta solo y lo agrega al catálogo — no hace falta tocar código ni pegar nada acá.</p>
+        <div class="controls-bar" style="margin-bottom:1.75rem;">
+          <button class="btn gold" id="btnReloadGithub">🔄 Recargar módulos desde GitHub ahora</button>
+        </div>
+        <div id="githubReloadFeedback"></div>
+
+        <h2 class="section-heading" style="margin-top:2rem;">Método alternativo — pegar código a mano</h2>
+        <p class="hint-box">Si preferís no usar GitHub, pegá acá el mismo bloque HTML generado con el prompt (uno o varios <code>&lt;article data-module-type="..."&gt;</code>, con <code>data-module-type</code> igual a <code>bacteria</code>, <code>virus</code>, <code>parasito</code> o <code>hongo</code>). Si uno ya existe (mismo id), se actualiza en vez de duplicarse. Esta vía guarda solo en este dispositivo/espacio, no en el repositorio.</p>
 
         <textarea id="importCodeInput" class="btn code-input" rows="10" placeholder='<article data-module-type="bacteria" data-name="Streptococcus pyogenes" data-grupo="Cocos Gram positivos" data-gram="Gram positivo">
   <div data-field="caracteristicas">...</div>
@@ -950,6 +957,99 @@ function setSyncState(state){
   const toolsIcon = document.querySelector('#toolsSyncCard .ss-icon');
   if (homeIcon) homeIcon.textContent = state === 'cloud' ? '☁️' : '💾';
   if (toolsIcon) toolsIcon.textContent = state === 'cloud' ? '☁️' : '💾';
+}
+
+/* ==========================================================================
+   2.5 CARGA AUTOMÁTICA DE MÓDULOS DESDE GITHUB (data/modulos)
+   ========================================================================== */
+// Configurá estos 4 valores una sola vez con los datos de tu repositorio.
+// Una vez configurado, cualquier archivo .html que subas a la carpeta
+// "data/modulos" del repo aparece solo en el sitio, sin tocar código.
+const GITHUB_CONFIG = {
+  owner:  'TU-USUARIO-DE-GITHUB',   // ej: 'jperez'
+  repo:   'PAD',                    // nombre exacto del repositorio
+  branch: 'main',                   // rama publicada en GitHub Pages
+  path:   'data/modulos'            // carpeta donde subís los .html generados con el prompt
+};
+
+// Parsea un bloque de HTML (uno o varios <article data-module-type="...">) y
+// devuelve los objetos de datos listos para guardar. Se usa tanto para el
+// importador manual (pegar texto) como para la carga automática desde GitHub.
+function parseModulesHTML(raw){
+  const template = document.createElement('template');
+  template.innerHTML = raw;
+  const modules = template.content.querySelectorAll('[data-module-type="bacteria"], [data-module-type="virus"], [data-module-type="parasito"], [data-module-type="hongo"]');
+
+  const items = [];
+  let rejected = 0;
+  modules.forEach(mod => {
+    const name = mod.getAttribute('data-name');
+    if (!name){ rejected++; return; }
+    const tipo = mod.getAttribute('data-module-type') || 'bacteria';
+    const id = mod.getAttribute('data-id') || (tipo + '-' + slugify(name));
+    const item = {
+      id, name, tipo,
+      grupo: mod.getAttribute('data-grupo') || '',
+      gram: mod.getAttribute('data-gram') || '',
+      image: mod.getAttribute('data-image') || ''
+    };
+    FIELD_DEFS.forEach(f => {
+      const el = mod.querySelector(`[data-field="${f.key}"]`);
+      item[f.key] = el ? sanitizeHTML(el.innerHTML) : '';
+    });
+    items.push(item);
+  });
+  return { items, rejected };
+}
+
+// Inserta/actualiza items ya parseados dentro de AppState.bacteria.
+function mergeModuleItems(items, { fromGithub=false } = {}){
+  let count = 0;
+  items.forEach(item => {
+    const idx = AppState.bacteria.findIndex(b => b.id === item.id);
+    const finalItem = normalizeItem({ ...item, isDemo:false, fromGithub: fromGithub || (idx>=0 ? !!AppState.bacteria[idx].fromGithub : false) });
+    if (idx >= 0) AppState.bacteria[idx] = { ...AppState.bacteria[idx], ...finalItem };
+    else AppState.bacteria.push(finalItem);
+    count++;
+  });
+  return count;
+}
+
+// Lista la carpeta data/modulos del repo vía la API pública de GitHub,
+// descarga cada archivo .html y lo mezcla en el catálogo. No requiere
+// autenticación (repos públicos) y se ejecuta al cargar la página.
+async function loadModulesFromGitHub(){
+  const { owner, repo, branch, path } = GITHUB_CONFIG;
+  if (!owner || owner.startsWith('TU-USUARIO')){
+    console.info('Carga desde GitHub desactivada: completá GITHUB_CONFIG con tu usuario y repositorio.');
+    return;
+  }
+
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`;
+  try{
+    const res = await fetch(apiUrl, { headers:{ 'Accept':'application/vnd.github+json' } });
+    if (!res.ok){ console.warn('No se pudo listar', path, 'en GitHub (status ' + res.status + ').'); return; }
+    const files = await res.json();
+    const htmlFiles = Array.isArray(files) ? files.filter(f => f.type === 'file' && f.name.toLowerCase().endsWith('.html')) : [];
+
+    let total = 0;
+    for (const file of htmlFiles){
+      try{
+        const raw = await (await fetch(file.download_url)).text();
+        const { items } = parseModulesHTML(raw);
+        total += mergeModuleItems(items, { fromGithub:true });
+      }catch(e){
+        console.warn('Error cargando el módulo', file.name, e);
+      }
+    }
+    if (total){
+      await saveToStorage();
+      refreshAllViews();
+      console.log(`Módulos cargados automáticamente desde GitHub (${path}): ${total}.`);
+    }
+  }catch(e){
+    console.warn('No se pudo conectar con la API de GitHub para cargar módulos:', e);
+  }
 }
 
 /* ==========================================================================
@@ -2251,39 +2351,15 @@ function setupImporter(){
     }
 
     try{
-      const template = document.createElement('template');
-      template.innerHTML = raw;
-      const modules = template.content.querySelectorAll('[data-module-type="bacteria"], [data-module-type="virus"], [data-module-type="parasito"], [data-module-type="hongo"]');
+      const { items, rejected } = parseModulesHTML(raw);
 
-      if (!modules.length){
+      if (!items.length){
         feedback.style.color = '#b91c1c';
         feedback.textContent = 'No se encontró ningún elemento con data-module-type="bacteria|virus|parasito|hongo".';
         return;
       }
 
-      let count = 0, rejected = 0;
-      modules.forEach(mod => {
-        const name = mod.getAttribute('data-name');
-        if (!name){ rejected++; return; }
-
-        const tipo = mod.getAttribute('data-module-type') || 'bacteria';
-        const id = mod.getAttribute('data-id') || (tipo + '-' + slugify(name));
-        const item = {
-          id, name, tipo,
-          grupo: mod.getAttribute('data-grupo') || '',
-          gram: mod.getAttribute('data-gram') || '',
-          image: mod.getAttribute('data-image') || ''
-        };
-        FIELD_DEFS.forEach(f => {
-          const el = mod.querySelector(`[data-field="${f.key}"]`);
-          item[f.key] = el ? sanitizeHTML(el.innerHTML) : '';
-        });
-
-        const idx = AppState.bacteria.findIndex(b => b.id === id);
-        if (idx >= 0) AppState.bacteria[idx] = normalizeItem({ ...AppState.bacteria[idx], ...item, isDemo:false });
-        else AppState.bacteria.push(normalizeItem(item));
-        count++;
-      });
+      const count = mergeModuleItems(items, { fromGithub:false });
 
       await saveToStorage();
       refreshAllViews();
@@ -2297,6 +2373,22 @@ function setupImporter(){
       feedback.style.color = '#b91c1c';
       feedback.textContent = 'Error procesando el HTML ingresado: ' + err.message;
       console.error(err);
+    }
+  });
+
+  document.getElementById('btnReloadGithub')?.addEventListener('click', async () => {
+    const feedback = document.getElementById('githubReloadFeedback');
+    const { owner } = GITHUB_CONFIG;
+    if (!owner || owner.startsWith('TU-USUARIO')){
+      if (feedback){ feedback.style.color = '#b91c1c'; feedback.textContent = 'Todavía no configuraste GITHUB_CONFIG (owner/repo/branch/path) en el código del sitio.'; }
+      return;
+    }
+    if (feedback){ feedback.style.color = ''; feedback.textContent = 'Buscando módulos nuevos en GitHub…'; }
+    const before = AppState.bacteria.length;
+    await loadModulesFromGitHub();
+    if (feedback){
+      feedback.style.color = '#15803d';
+      feedback.textContent = `Listo. Catálogo actualizado desde GitHub (${AppState.bacteria.length} elemento(s) en total).`;
     }
   });
 
@@ -2599,6 +2691,7 @@ function refreshAllViews(){
    ========================================================================== */
 async function initApp(){
   await loadFromStorage();
+  await loadModulesFromGitHub();
   setupNavigation();
   setupHeaderSearch();
   setupBacteriaFilters();
